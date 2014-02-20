@@ -278,7 +278,7 @@ classdef design_matrix
             %
             % See normalizedrank.m for optional inputs
             
-            obj.dat = normalizedrank(obj.dat, varargin)
+            obj.dat = normalizedrank(obj.dat, varargin);
         end
         
         function obj = conv_hrf(obj, varargin)
@@ -403,5 +403,48 @@ classdef design_matrix
             
             [B,BINT,R,RINT,STATS] = regress(Y, obj.dat);
         end
+        
+        function obj = onsettimes(obj, onset, names, tr, timing )
+            %Create stimulus regressor from onset times
+            %
+            % Inputs
+            % -------------------------------------------------------------------
+            % onset        : Input cell array of onset times for each
+            %                   regressor in FSL's 3 column format (e.g., onset in sec, duration in sec, weight).
+            %
+            % names        : Cell array of variable names corresponding
+            %                to each onset cell (e.g., {'BlueOn','RedOn'})
+            %
+            % tr           : Repetition time (e.g., 2)
+            %
+            % timing       : Timing converstion from onset array to design matrix
+            %                  (e.g., 'sec2tr','tr2sec','sec2sec',or
+            %                  'tr2tr'). Need to know which format each
+            %                  array is in.
+
+            %Convert Onset Times Into Boxcar Regressors
+            r = zeros(size(obj,1),length(onset));
+            for i = 1:length(onset)
+                for j = 1:size(onset{i},1)
+                    switch timing
+                        case 'sec2tr'
+                            if floor(onset{i}(j,1)/tr) == 0
+                                r(1 : 1 + ceil(onset{i}(j,2)), i) = onset{i}(j,3);
+                            else
+                                r(floor(onset{i}(j,1) / tr) : floor(onset{i}(j,1) / tr) + ceil(onset{i}(j,2) / tr) - 1, i) = onset{i}(j,3);
+                            end
+                        case 'tr2sec'
+                            r(floor(onset{i}(j,1) * tr) : floor(onset{i}(j,1) * tr) + ceil(onset{i}(j,2) * tr) - 1, i) = onset{i}(j,3);
+                        case {'sec2sec', 'tr2tr'}
+                            r(floor(onset{i}(j,1)) : floor(onset{i}(j,1)) + ceil(onset{i}(j,2)) - 1, i) = onset{i}(j,3);
+                    end
+                end
+            end 
+            obj.dat = [obj.dat, r];
+            
+            %Add Variable names
+            obj.varname = [obj.varname, names];
+        end
+        
     end %methods
 end %class

@@ -9,16 +9,16 @@ classdef design_matrix
     % varname                   : Cell array containing variable names.  Must
     %                             match number of column in data matrix
     %
-    %
     % Examples:
     % ---------------------------------------------------------------------
     % DM = design_matrix([ones(10,1), (1:10)', (1:10).^2'],{'Intercept','X','X2'})
     %
     % Original version: Copyright Luke Chang 2/2014
     
-    %Notes:
-    %Need to add these Methods:
-    %function , glm, create regressor from stim times, pca
+    % Notes:
+    % Need to add these Methods:
+    % -create regressor from stim times
+    % -pca
     
     properties
         dat = [];
@@ -278,7 +278,7 @@ classdef design_matrix
             %
             % See normalizedrank.m for optional inputs
             
-            obj.dat = normalizedrank(obj.dat, varargin)
+            obj.dat = normalizedrank(obj.dat, varargin);
         end
         
         function obj = conv_hrf(obj, varargin)
@@ -397,10 +397,56 @@ classdef design_matrix
             obj.varname = [obj.varname, filtname];
         end
         
-        function [B,BINT,R,RINT,STATS] = regress(obj,Y)
+        function [B,BINT,R,RINT,STATS] = regress(obj, Y)
             % Regress design matrix on vector Y
+            % Uses matlab's regress function
             
             [B,BINT,R,RINT,STATS] = regress(Y, obj.dat);
+        end
+        
+        function obj = onsettimes(obj, onset, tr, timing, varargin )
+            %Create stimulus regressor from onset times
+            %
+            % Inputs
+            % -------------------------------------------------------------------
+            % 'onset'        : Input cell array of onset times for each
+            %                   regressor in FSL's 3 column format (e.g., onset sec, duration, sec, weight).
+            %
+            % 'tr'           : Repetition time
+            %
+            % 'timing'       : Timing converstion from onset array to desin matrix
+            %                  (e.g., 'sec2tr','tr2sec','sec2sec',or 'tr2tr')
+            
+            %onset, duration, weight - input cell array for multiple regressors
+            %in tr or sec
+            %matrix will be in TRs, assume
+            onset = [1, 5, 7; 2, 2, 2; 1, 1, 1]';
+            onset{1} = [1, 5, 7; 2, 2, 2; 1, 1, 1]';
+            onset{2} = [2, 6; 3, 2; 1, 1]';
+            
+            %Defaults
+            timing = 'sec2tr';
+            tr = 2;
+            
+            %Convert 
+            r = zeros(size(obj,1),length(onset));
+            for i = 1:length(onset)
+                for j = 1:size(onset{i},1)
+                    switch timing
+                        case 'sec2tr'
+                            if floor(onset{i}(j,1)/tr) == 0
+                                r(1 : 1 + ceil(onset{i}(j,2)), i) = onset{i}(j,3);
+                            else
+                                r(floor(onset{i}(j,1) / tr) : floor(onset{i}(j,1) / tr) + ceil(onset{i}(j,2) / tr) - 1, i) = onset{i}(j,3);
+                            end
+                        case 'tr2sec'
+                            r(floor(onset{i}(j,1) * tr) : floor(onset{i}(j,1) * tr) + ceil(onset{i}(j,2) * tr) - 1, i) = onset{i}(j,3);
+                        case {'sec2sec', 'tr2tr'}
+                            r(floor(onset{i}(j,1)) : floor(onset{i}(j,1)) + ceil(onset{i}(j,2)) - 1, i) = onset{i}(j,3);
+                    end
+                end
+            end 
+            
         end
     end %methods
 end %class
