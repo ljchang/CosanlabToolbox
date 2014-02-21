@@ -316,7 +316,7 @@ classdef design_matrix
                     end
                     
                     if strcmpi('select',varargin{varg})
-                        if isnumeric(varargin{varg + 1}) && varargin{varg + 1} <= size(obj,2)
+                        if isnumeric(varargin{varg + 1}) && all(varargin{varg + 1} <= size(obj,2))
                             include = varargin{varg + 1};
                         else
                             error('Make sure ''select'' is followed by a valid column number')
@@ -330,6 +330,7 @@ classdef design_matrix
             %Convolution of task
             for i = 1:length(include)
                 convdat = conv(obj.dat(:,include(i)),spm_hrf(tr));
+                
                 %Cut off extra data from convolution
                 obj.dat(:,include(i)) = convdat(1:size(obj,1));
             end
