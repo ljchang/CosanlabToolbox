@@ -1,5 +1,7 @@
 # Run multilevel mediation with parametric bootstrapping using both percentile and bias corrected accelerated methods
 #
+# .:Suggested by Jake Westfall:.
+#
 # Basically you loop through N iterations (N being number of bootstrap samples) and each time you 
 # (1) sample dependent variable from model using simulate() 
 # (2) regress X on Y with multilevel model, save X slope, 
@@ -16,7 +18,8 @@
 # See:
 # http://davidakenny.net/cm/mediate.htm
 # See Efron (1987). Better Bootstrap Confidence Intervals. JASA, 82(397), 171-185.
-
+#
+# Written by Luke Chang 3/26/2014
 
 library(lme4)
 

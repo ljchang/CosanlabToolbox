@@ -8,6 +8,9 @@ BCaInterval <- function(bs.samples, theta, jk.theta,conf = .95){
 	# conf 			= confidence interval percentile
 	#
 	# Outputs 		= bias corrected accelerated intervals
+	#
+	# Written by Luke Chang 3/26/2014
+
 
 	alpha <- (1 + c(-conf, conf))/2
 
