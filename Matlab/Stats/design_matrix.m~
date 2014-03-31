@@ -319,7 +319,7 @@ classdef design_matrix
             % 'select'       : Select Input vector of regressors to convolve
             %                  (e.g., 'select', [2,4])
             %
-            % 'custom_hrf'   : Use custom HRF (e.g., 'custom_hrf', [1.00, 0.59, 0.39, 0.27]
+            % 'custom_hrf'   : Use custom HRF (e.g., 'custom_hrf', []
             
             % Defaults
             include = (1:size(obj,2)); %Convolve entire Design Matrix by default
@@ -337,7 +337,6 @@ classdef design_matrix
                     if strcmpi('tr',varargin{varg})
                         if isnumeric(varargin{varg + 1})
                             tr = varargin{varg + 1};
-                            crf = spm_hrf(tr);
                         else
                             error('Make sure ''tr'' is followed by valid number')
                         end
@@ -353,11 +352,11 @@ classdef design_matrix
                         varargin{varg} = {}; varargin{varg + 1} = {};
                     end
                     
-                    if strcmpi('custom_hrf',varargin{varg})
+                    if strcmpi('select',varargin{varg})
                         if isnumeric(varargin{varg + 1}) && all(varargin{varg + 1} <= size(obj,2))
-                            crf = varargin{varg + 1};
+                            include = varargin{varg + 1};
                         else
-                            error('Make sure ''custom_hrf'' is followed by a vector of a canonical response function')
+                            error('Make sure ''select'' is followed by a valid column number')
                         end
                         varargin{varg} = {}; varargin{varg + 1} = {};
                     end
@@ -367,7 +366,7 @@ classdef design_matrix
             
             %Convolution of task
             for i = 1:length(include)
-                convdat = conv(obj.dat(:,include(i)),crf);
+                convdat = conv(obj.dat(:,include(i)),spm_hrf(tr));
                 
                 %Cut off extra data from convolution
                 obj.dat(:,include(i)) = convdat(1:size(obj,1));
