@@ -1,0 +1,21 @@
+function [F, p] = nestedModelComparison(sseFull,nFeaturesFull, sseNested,nFeaturesNested, varFull)
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % F = nestedModelComparison(sseFull,nFeaturesFull, sseNested,nFeaturesNested, varFull)
+    % 
+    % This Function performs an F-test on nested model comparisons.
+    %
+    % INPUTS:
+    % sseFull:          Sum of Squared Error for Full Model
+    % sseNested:        Sum of Squared Error for Nested Model
+    % nFeaturesFull:    Number of features in Full Model
+    % nFeaturesNested:  Number of features in Nested Model
+    % varFull:          Residual Variance for Full Model
+    %
+    % OUTPUTS:
+    % F:                F statistic
+    % p:                pValue
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    F = ((sseNested - sseFull)/(nFeaturesFull - nFeaturesNested))/varFull;
+    p = fpdf(F,
+end

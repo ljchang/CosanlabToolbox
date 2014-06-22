@@ -124,7 +124,7 @@ classdef design_matrix
                 if ischar(varargin{varg})
                     % reserved keywords
                     if strcmpi('name',varargin{varg})
-                        if ischar(varargin{varg + 1}) && length(varargin{varg + 1}) == size(x,2)
+                        if length(varargin{varg + 1}) == size(x,2)
                             newname = varargin{varg + 1};
                             isnewname = 1;
                         else
