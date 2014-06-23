@@ -1,6 +1,6 @@
-function [F, p] = nestedModelComparison(sseFull,nFeaturesFull, sseNested,nFeaturesNested, varFull)
+function [F, p] = nestedModelComparison(sseFull,nFeaturesFull, sseNested,nFeaturesNested)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % F = nestedModelComparison(sseFull,nFeaturesFull, sseNested,nFeaturesNested, varFull)
+    % F = nestedModelComparison(sseFull,nFeaturesFull, sseNested,nFeaturesNested, nObservations)
     % 
     % This Function performs an F-test on nested model comparisons.
     %
@@ -9,13 +9,16 @@ function [F, p] = nestedModelComparison(sseFull,nFeaturesFull, sseNested,nFeatur
     % sseNested:        Sum of Squared Error for Nested Model
     % nFeaturesFull:    Number of features in Full Model
     % nFeaturesNested:  Number of features in Nested Model
-    % varFull:          Residual Variance for Full Model
+    % nObservations:    Number of observations
     %
     % OUTPUTS:
     % F:                F statistic
-    % p:                pValue
+    % p:                One Tailed pValue
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    F = ((sseNested - sseFull)/(nFeaturesFull - nFeaturesNested))/varFull;
-    p = fpdf(F,
+    g = (nFeaturesFull - nFeaturesNested);
+    d = nObservations - nFeaturesFull - 1;
+    F = ((sseNested - sseFull)/g)/(sseFull/d);
+    p = fpdf(abs(F),g,d);
+
 end

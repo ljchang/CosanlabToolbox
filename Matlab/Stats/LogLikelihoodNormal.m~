@@ -1,0 +1,6 @@
+function LL = LogLikelihoodNormal(y,x,beta,sigma)
+
+for i = 1:length(y)
+    LL(i) = (-1/2) * 2 * pi - (1/2) * log(sigma^2) - (1/2) * (y(i) - (beta*yhat(i)).^2)/sigma^2;
+end
+

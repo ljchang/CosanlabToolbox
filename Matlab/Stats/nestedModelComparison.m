@@ -13,7 +13,7 @@ function [F, p] = nestedModelComparison(sseFull,nFeaturesFull, sseNested,nFeatur
     %
     % OUTPUTS:
     % F:                F statistic
-    % p:                One Tailed pValue
+    % p:                pValue
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     g = (nFeaturesFull - nFeaturesNested);
