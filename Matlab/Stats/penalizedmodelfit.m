@@ -20,17 +20,12 @@ function varargout = penalizedmodelfit(modelfit, nObs, nPar, varargin)
 % -------------------------------------------------------------------------
 % Optional Inputs:
 % -------------------------------------------------------------------------
-% 'SSE':            Type of model fit - Residual Sum of Squares
+% 'type':           Followed by type of model fit: Residual Sum of Squares (SSE),
+%                   Log Likelihood Estimate (LLE; default), Likelihood
+%                   Estimate (LE)
 %
-% 'LLE':            Type of model fit - Log Likelihood Estimate (default)
-%
-% 'LE':             Type of model fit - Likelihood Estimate
-%
-% 'AIC':            Calculate Akaike Information Criterion (default)
-%
-% 'BIC':            Calculate Bayesian Information Criterion
-%
-% 'BOTH':           Calculate both AIC and BIC
+% 'metric':         Followed by type of metric to output: Akaike Information Criterion ('AIC'; default)
+%                   Bayesian Information Criterion ('BIC'), or both AIC & BIC ('BOTH')
 %
 % -------------------------------------------------------------------------
 % Outputs:
@@ -42,7 +37,9 @@ function varargout = penalizedmodelfit(modelfit, nObs, nPar, varargin)
 % Examples:
 % -------------------------------------------------------------------------
 %
-% [z,p] = two_proportion_ztest([1,1,1,1,0],[1,0,1,0,1]) %independent samples
+% AIC = penalizedmodelfit(200, 100, 2, 'type','SSE','metric','AIC')
+%
+% [AIC, BIC] = penalizedmodelfit(200, 100, 2, 'type','LLE','metric','BOTH')
 %
 % -------------------------------------------------------------------------
 % Author and copyright information:
@@ -64,19 +61,24 @@ function varargout = penalizedmodelfit(modelfit, nObs, nPar, varargin)
 % -------------------------------------------------------------------------
 
 % defaults
-type = 'LLE';
-metric = 'AIC';  %or 'BIC', or 'BOTH'
+type = 'LLE'; %or 'LE' or 'SSE'
+metric = 'AIC'; %or 'BIC', or 'BOTH'
 
 % Parse Input
-if strcmpi(varargin,'AIC'); metric = 'AIC'; end
-if strcmpi(varargin,'BIC'); metric = 'BIC'; end
-if strcmpi(varargin,'BOTH'); metric = 'BOTH'; end
-if strcmpi(varargin,'SSE'); type = 'SSE'; end
-if strcmpi(varargin,'LLE'); type = 'LLE'; end
-if strcmpi(varargin,'LE'); type = 'LE'; end
+for varg = 1:length(varargin)
+    if ischar(varargin{varg})
+        if strcmpi('type',varargin{varg})
+            type = varargin{varg + 1};
+            varargin{varg} = {}; varargin{varg + 1} = {};
+        end
+        if strcmpi('metric',varargin{varg})
+            metric = varargin{varg + 1};
+            varargin{varg} = {}; varargin{varg + 1} = {};
+        end
+    end
+end
 
 switch type
-    
     case 'SSE' %residual sum of squared error
         switch metric
             case 'AIC'
