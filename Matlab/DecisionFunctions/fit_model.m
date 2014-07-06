@@ -1,5 +1,7 @@
-function model_output = fit_model(data, model, param_min, param_max, nStart)
+function model_output = fit_model(data, model, param_min, param_max, nStart, type)
+
 % model_output = fit_model(data, model, param_min, param_max, nStart)
+%
 % -------------------------------------------------------------------------
 % This function will fit a model (model) using fmincon to a dataset (data) 
 % multiple times with random start values (nStart) with the parameters being 
@@ -23,6 +25,9 @@ function model_output = fit_model(data, model, param_min, param_max, nStart)
 % 
 % nStart            Number of repetitions with random initial paramater.
 %                   Larger numbers decrease likelihood of getting stuck in local minima
+%
+% type              Type of parameter estimation (e.g., maximizing LLE or
+%                   minimizing 'SSE').
 %
 % -------------------------------------------------------------------------
 % OUTPUTS:
@@ -79,7 +84,11 @@ for s = 1:length(Subjects)
     params(s,1) = Subjects(s);
     params(s,2:length(xParMin) + 1) = xParMin;
     params(s,length(xParMin) + 2) = fvalMin;
-    params(s,length(xParMin) + 3:length(xParMin) + 4) = penalizedmodelfit(-fvalMin, size(sdat,1), length(xParMin), 'type', 'LLE', 'metric', 'BOTH');
+    if type == 'LLE'
+        params(s,length(xParMin) + 3:length(xParMin) + 4) = penalizedmodelfit(-fvalMin, size(sdat,1), length(xParMin), 'type', type, 'metric', 'BOTH');
+    elseif type =='SSE'
+        params(s,length(xParMin) + 3:length(xParMin) + 4) = penalizedmodelfit(fvalMin, size(sdat,1), length(xParMin), 'type', type, 'metric', 'BOTH');
+    end
     
     %aggregate trials
     allout = [allout; trialout];

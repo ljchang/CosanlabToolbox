@@ -1,40 +1,41 @@
-function model_output = fit_model(data, model, param_min, param_max, nStart)
+function model_output = fit_model(data, model, param_min, param_max, nStart, type)
 % model_output = fit_model(data, model, param_min, param_max, nStart)
+%
 % -------------------------------------------------------------------------
 % This function will fit a model (model) using fmincon to a dataset (data) 
 % multiple times with random start values (nStart) with the parameters being 
-% constrained to a lower bound (param_min) and upper bound (param_max)
-% Requires some helper functions from my github repository 
+% constrained to a lower bound (param_min) and upper bound (param_max).
+% Estimates a separate parameter to each subject (indicated in 1st column
+% of dataset).  Requires some helper functions from my github repository 
 % (https://github.com/ljchang/toolbox/tree/master/Matlab).  Clone this
-% repository and add paths to Matlab.
+% repository and add paths to Matlab.  Requires that the model be a
+% named function or subfunction.
 %
 % -------------------------------------------------------------------------
 % INPUTS:
 % -------------------------------------------------------------------------
-% data              Dataset to fit model, assumes subj
+% data              Dataset to fit model, assumes subject ID is the 1st column.
+%
 % model             Specify model to fit (see models)
+% 
 % param_min         Vector of minimum parameter values
+% 
 % param_max         Vector of maximum parameter values
+% 
 % nStart            Number of repetitions with random initial paramater.
 %                   Larger numbers decrease likelihood of getting stuck in local minima
-%
+% type              Type of parameter estimation (e.g., maximizing LLE or
+%                   minimizing 'SSE'). Default is 'LLE'
 % -------------------------------------------------------------------------
 % OUTPUTS:
 % -------------------------------------------------------------------------
-% out               Structure containing all of the simulation data and results
-%
-% -------------------------------------------------------------------------
-% MODELS:
-% -------------------------------------------------------------------------
-% 'linear'          One parameter linear decrease in symptoms
-% 'nonlinear'       Two parameter exponential decay in symptoms
-% 'linear_expect'   Three parameter linear decrease in symptoms with RL
-%                   expectation bonus
+% model_output      Structure containing all of the trial-trial data and
+%                   Parameter estimates
 %
 % -------------------------------------------------------------------------
 % EXAMPLES:
 % -------------------------------------------------------------------------
-% model_output = simulate_treatment_model(.3, 15, -.5, 25, rand(ntrial,1) > .2)
+% model_output = fit_model(data, model, param_min, param_max, nStart)
 %
 % -------------------------------------------------------------------------
 % Author and copyright information:
@@ -54,6 +55,9 @@ function model_output = fit_model(data, model, param_min, param_max, nStart)
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 % -------------------------------------------------------------------------
+
+% Defaults
+type = 'LLE'
 
 Subjects = unique(data(:,1));
 allout = [];
@@ -92,3 +96,4 @@ model_output.params = params;
 model_output.trial = allout;
 
 end %Function end
+
