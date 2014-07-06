@@ -1,4 +1,5 @@
 function model_output = fit_model(data, model, param_min, param_max, nStart, type)
+
 % model_output = fit_model(data, model, param_min, param_max, nStart)
 %
 % -------------------------------------------------------------------------
@@ -24,8 +25,10 @@ function model_output = fit_model(data, model, param_min, param_max, nStart, typ
 % 
 % nStart            Number of repetitions with random initial paramater.
 %                   Larger numbers decrease likelihood of getting stuck in local minima
+%
 % type              Type of parameter estimation (e.g., maximizing LLE or
-%                   minimizing 'SSE'). Default is 'LLE'
+%                   minimizing 'SSE').
+%
 % -------------------------------------------------------------------------
 % OUTPUTS:
 % -------------------------------------------------------------------------
@@ -56,13 +59,10 @@ function model_output = fit_model(data, model, param_min, param_max, nStart, typ
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 % -------------------------------------------------------------------------
 
-% Defaults
-type = 'LLE'
-
 Subjects = unique(data(:,1));
 allout = [];
 for s = 1:length(Subjects)
-    sdat = dat(dat(:,1)==Subjects(s),:); %Select subject's data
+    sdat = data(dat(:,1)==Subjects(s),:); %Select subject's data
     
     xpar = zeros(nStart,length(param_min)); fval = zeros(nStart,1); exitflag = zeros(nStart,1); out = {nStart,1};  %Initialize values to workspace
     
@@ -84,7 +84,11 @@ for s = 1:length(Subjects)
     params(s,1) = Subjects(s);
     params(s,2:length(xParMin) + 1) = xParMin;
     params(s,length(xParMin) + 2) = fvalMin;
-    params(s,length(xParMin) + 3:length(xParMin) + 4) = penalizedmodelfit(-fvalMin, size(sdat,1), length(xParMin), 'type', 'LLE', 'metric', 'BOTH');
+    if type == 'LLE'
+        params(s,length(xParMin) + 3:length(xParMin) + 4) = penalizedmodelfit(-fvalMin, size(sdat,1), length(xParMin), 'type', type, 'metric', 'BOTH');
+    elseif type =='SSE'
+        params(s,length(xParMin) + 3:length(xParMin) + 4) = penalizedmodelfit(fvalMin, size(sdat,1), length(xParMin), 'type', type, 'metric', 'BOTH');
+    end
     
     %aggregate trials
     allout = [allout; trialout];

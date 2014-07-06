@@ -10,7 +10,7 @@ function model_output = fit_model(data, model, param_min, param_max, nStart, typ
 % of dataset).  Requires some helper functions from my github repository 
 % (https://github.com/ljchang/toolbox/tree/master/Matlab).  Clone this
 % repository and add paths to Matlab.  Requires that the model be a
-% named function or subfunction.
+% named function.
 %
 % -------------------------------------------------------------------------
 % INPUTS:
@@ -59,10 +59,13 @@ function model_output = fit_model(data, model, param_min, param_max, nStart, typ
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 % -------------------------------------------------------------------------
 
+global trialout
+
 Subjects = unique(data(:,1));
 allout = [];
 for s = 1:length(Subjects)
-    sdat = dat(dat(:,1)==Subjects(s),:); %Select subject's data
+    
+    sdat = data(data(:,1)==Subjects(s),:); %Select subject's data
     
     xpar = zeros(nStart,length(param_min)); fval = zeros(nStart,1); exitflag = zeros(nStart,1); out = {nStart,1};  %Initialize values to workspace
     
