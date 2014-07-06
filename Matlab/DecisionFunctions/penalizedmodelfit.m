@@ -1,10 +1,12 @@
-function varargout = penalizedmodelfit(modelfit,nObs,nPar,varargin)
+function varargout = penalizedmodelfit(modelfit, nObs, nPar, varargin)
 % varargout = modelfit(modelfit,nObs,nPar,varargin)
 % -------------------------------------------------------------------------%
 %
 %   This function calculates model fit penalizing for free parameters using
 %   AIC (default) or BIC for either residual sum of squares (SSE) or
-%   maximum log likelihood (default).
+%   maximum log likelihood (default). Make sure modelfit has negative sign in
+%   front of it being output from fmincon which can only minimize
+%   likelihoods.
 %
 % -------------------------------------------------------------------------
 % Inputs:
@@ -18,9 +20,11 @@ function varargout = penalizedmodelfit(modelfit,nObs,nPar,varargin)
 % -------------------------------------------------------------------------
 % Optional Inputs:
 % -------------------------------------------------------------------------
-% 'SSE':            Type of model fit - Residual Sum of Squares (default is 'LLE')
+% 'SSE':            Type of model fit - Residual Sum of Squares
 %
-% 'LLE':            Type of model fit - Log Likelihood (default is 'LLE')
+% 'LLE':            Type of model fit - Log Likelihood Estimate (default)
+%
+% 'LE':             Type of model fit - Likelihood Estimate
 %
 % 'AIC':            Calculate Akaike Information Criterion (default)
 %
@@ -39,8 +43,6 @@ function varargout = penalizedmodelfit(modelfit,nObs,nPar,varargin)
 % -------------------------------------------------------------------------
 %
 % [z,p] = two_proportion_ztest([1,1,1,1,0],[1,0,1,0,1]) %independent samples
-%
-% [z,p] = two_proportion_ztest([1,1,1,1,0],[1,0,1,0,1],'dependent') %dependent samples
 %
 % -------------------------------------------------------------------------
 % Author and copyright information:
@@ -71,33 +73,42 @@ if strcmpi(varargin,'BIC'); metric = 'BIC'; end
 if strcmpi(varargin,'BOTH'); metric = 'BOTH'; end
 if strcmpi(varargin,'SSE'); type = 'SSE'; end
 if strcmpi(varargin,'LLE'); type = 'LLE'; end
+if strcmpi(varargin,'LE'); type = 'LE'; end
 
 switch type
     
-    case 'SSE'
+    case 'SSE' %residual sum of squared error
         switch metric
             case 'AIC'
-                
+                varargout{1} = nObs * log(modelfit / nObs) + 2 * nPar; % the real formula also has a constant added, but it's not necessary for model comparisons
             case 'BIC'
-                
+                varargout{1} = nObs * log(modelfit / nObs) + nPar * log(nObs);
             case 'BOTH'
+                varargout{1} = nObs * log(modelfit / nObs) + 2 * nPar; % the real formula also has a constant added, but it's not necessary for model comparisons
+                varargout{2} = nObs * log(modelfit / nObs) + nPar * log(nObs);
         end
         
-    case 'LLE'
+    case 'LLE' %log-likelihood estimate
         switch metric
             case 'AIC'
-                varargout{1} = 2*nPar+fval;
+                varargout{1} = 2 * nPar - 2 * modelfit;
             case 'BIC'
-                varargout{1} = 2*fval+nPar*log(length(subdata));
+                varargout{1} = -2 * modelfit + nPar * log(nObs);
             case 'BOTH'
-                varargout{1} = 2*length(ipar)+fval;
-                varargout{2} = 2*fval+length(ipar)*log(length(subdata));
+                varargout{1} = 2 * nPar - 2 * modelfit;
+                varargout{2} = -2 * modelfit + nPar * log(nObs);
+        end
+        
+    case 'LE' %likelihood estimate
+        switch metric
+            case 'AIC'
+                varargout{1} = 2 * nPar - 2 * log(modelfit);
+            case 'BIC'
+                varargout{1} = -2 * log(modelfit) + nPar * log(nObs);
+            case 'BOTH'
+                varargout{1} = 2 * nPar - 2 * log(modelfit);
+                varargout{2} = -2 * log(modelfit) + nPar * log(nObs);
         end
 end
 
 end %function end
-
-BICMin=length(nObs)*log(SSEMin)-nObs*log(length(nObs))+log(length(nObs))*size(xPar,2);
-
-params(sub,length(xpar)+4)=2*length(ipar)+fval; %AIC-smaller is better - LLE should be Comative see Doll et al Brain Research
-params(sub,length(xpar)+5)=2*fval+length(ipar)*log(length(subdata)); %BIC-Smaller is better - LLE should be Comative see Doll et al Brain Research
