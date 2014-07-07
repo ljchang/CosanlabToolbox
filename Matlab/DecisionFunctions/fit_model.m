@@ -10,7 +10,7 @@ function model_output = fit_model(data, model, param_min, param_max, nStart, typ
 % of dataset).  Requires some helper functions from my github repository 
 % (https://github.com/ljchang/toolbox/tree/master/Matlab).  Clone this
 % repository and add paths to Matlab.  Requires that the model be a
-% named function.
+% named function and that it can parse the input data.
 %
 % -------------------------------------------------------------------------
 % INPUTS:
@@ -88,9 +88,11 @@ for s = 1:length(Subjects)
     params(s,2:length(xParMin) + 1) = xParMin;
     params(s,length(xParMin) + 2) = fvalMin;
     if type == 'LLE'
-        params(s,length(xParMin) + 3:length(xParMin) + 4) = penalizedmodelfit(-fvalMin, size(sdat,1), length(xParMin), 'type', type, 'metric', 'BOTH');
+        params(s,length(xParMin) + 3) = penalizedmodelfit(-fvalMin, size(sdat,1), length(xParMin), 'type', type, 'metric', 'AIC');
+        params(s,length(xParMin) + 4) = penalizedmodelfit(-fvalMin, size(sdat,1), length(xParMin), 'type', type, 'metric', 'BIC');
     elseif type =='SSE'
-        params(s,length(xParMin) + 3:length(xParMin) + 4) = penalizedmodelfit(fvalMin, size(sdat,1), length(xParMin), 'type', type, 'metric', 'BOTH');
+        params(s,length(xParMin) + 3) = penalizedmodelfit(fvalMin, size(sdat,1), length(xParMin), 'type', type, 'metric', 'AIC');
+        params(s,length(xParMin) + 4) = penalizedmodelfit(fvalMin, size(sdat,1), length(xParMin), 'type', type, 'metric', 'BIC');
     end
     
     %aggregate trials
@@ -101,6 +103,11 @@ end
 model_output = struct;
 model_output.params = params;
 model_output.trial = allout;
+model_output.param_min = param_min;
+model_output.param_max = param_max;
+model_output.nStart = nStart;
+model_output.type = type;
+
 
 end %Function end
 
