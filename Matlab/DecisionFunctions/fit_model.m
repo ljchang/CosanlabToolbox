@@ -3,11 +3,11 @@ function model_output = fit_model(data, model, param_min, param_max, nStart, typ
 % model_output = fit_model(data, model, param_min, param_max, nStart, type)
 %
 % -------------------------------------------------------------------------
-% This function will fit a model (model) using fmincon to a dataset (data) 
-% multiple times with random start values (nStart) with the parameters being 
+% This function will fit a model (model) using fmincon to a dataset (data)
+% multiple times with random start values (nStart) with the parameters being
 % constrained to a lower bound (param_min) and upper bound (param_max).
 % Estimates a separate parameter to each subject (indicated in 1st column
-% of dataset).  Requires some helper functions from my github repository 
+% of dataset).  Requires some helper functions from my github repository
 % (https://github.com/ljchang/toolbox/tree/master/Matlab).  Clone this
 % repository and add paths to Matlab.  Requires that the model be a
 % named function and that it can parse the input data.
@@ -15,31 +15,34 @@ function model_output = fit_model(data, model, param_min, param_max, nStart, typ
 % -------------------------------------------------------------------------
 % INPUTS:
 % -------------------------------------------------------------------------
-% data              Dataset to fit model, assumes subject ID is the 1st column.
+% data                  Dataset to fit model, assumes subject ID is the 1st column.
 %
-% model             Specify model to fit (see models)
-% 
-% param_min         Vector of minimum parameter values
-% 
-% param_max         Vector of maximum parameter values
-% 
-% nStart            Number of repetitions with random initial paramater.
-%                   Larger numbers decrease likelihood of getting stuck in local minima
+% model                 Specify model to fit (see models)
 %
-% type              Type of parameter estimation (e.g., maximizing LLE or
-%                   minimizing 'SSE').
+% param_min             Vector of minimum parameter values
+%
+% param_max             Vector of maximum parameter values
+%
+% nStart                Number of repetitions with random initial paramater.
+%                       Larger numbers decrease likelihood of getting stuck in local minima
+%
+% type                  Type of parameter estimation (e.g., maximizing LLE or
+%                       minimizing 'SSE').
 %
 % -------------------------------------------------------------------------
 % OPTIONAL INPUTS:
 % -------------------------------------------------------------------------
-% show_subject     Displays Subject ID for every iteration.  Helpful for
-%                  debugging.  Off by default.
+% show_subject          Displays Subject ID for every iteration.  Helpful for
+%                       debugging.  Off by default.
+%
+% persistent_fmincon    Continues running fmincon despite error.  Good for
+%                       salvaging data if a model is having difficulty converging
 %
 % -------------------------------------------------------------------------
 % OUTPUTS:
 % -------------------------------------------------------------------------
-% model_output      Structure containing all of the trial-trial data and
-%                   Parameter estimates
+% model_output          Structure containing all of the trial-trial data and
+%                       Parameter estimates
 %
 % -------------------------------------------------------------------------
 % EXAMPLES:
@@ -66,11 +69,32 @@ function model_output = fit_model(data, model, param_min, param_max, nStart, typ
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 % -------------------------------------------------------------------------
 
+%--------------------------------------------------------------------------
+% Setup
+%--------------------------------------------------------------------------
+
 global trialout
 
 % Defaults
 showSubject = 0;
-if strcmpi(varargin,'show_subject'); showSubject = 1; end
+persist = 0;
+
+% Parse Inputs
+for varg = 1:length(varargin)
+    if ischar(varargin{varg})
+        if strcmpi(varargin(varg),'show_subject')
+            showSubject = 1;
+            varargin(varg) = [];
+        elseif strcmpi(varargin,'persistent_fmincon')
+            persist = 1;
+            varargin(varg) = [];
+        end
+    end
+end
+
+%--------------------------------------------------------------------------
+% Run Model separately for every subject
+%--------------------------------------------------------------------------
 
 Subjects = unique(data(:,1));
 allout = [];
@@ -88,8 +112,19 @@ for s = 1:length(Subjects)
             ipar(ii) = random('Uniform',param_min(ii),param_max(ii),1,1);
         end
         
-        eval(['[xpar(iter,1:length(param_min)) fval(iter) exitflag(iter) out{iter}]=fmincon(@' model ', ipar, [], [], [], [], param_min, param_max, [], [], sdat);'])
-        
+        if ~persist
+            eval(['[xpar(iter,1:length(param_min)) fval(iter) exitflag(iter) out{iter}]=fmincon(@' model ', ipar, [], [], [], [], param_min, param_max, [], [], sdat);'])
+        else
+            try
+                eval(['[xpar(iter,1:length(param_min)) fval(iter) exitflag(iter) out{iter}]=fmincon(@' model ', ipar, [], [], [], [], param_min, param_max, [], [], sdat);'])
+            catch
+                display('Fmincon Could Not Converge.  Skipping Iteration')
+                xpar(iter,1:length(param_min)) = nan(1,length(param_min));
+                fval(iter) = nan;
+                exitflag(iter) = nan;
+                out{iter} = nan;
+            end
+        end
     end
     
     %Find Best fitting parameter if running multiple starting parameters
@@ -111,7 +146,10 @@ for s = 1:length(Subjects)
     allout = [allout; trialout];
 end
 
-%Create output structure
+%--------------------------------------------------------------------------
+% Collate Output
+%--------------------------------------------------------------------------
+
 model_output = struct;
 model_output.params = params;
 model_output.trial = allout;
