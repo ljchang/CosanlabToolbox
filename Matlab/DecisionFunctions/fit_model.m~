@@ -1,6 +1,6 @@
 function model_output = fit_model(data, model, param_min, param_max, nStart, type)
 
-% model_output = fit_model(data, model, param_min, param_max, nStart)
+% model_output = fit_model(data, model, param_min, param_max, nStart, type)
 %
 % -------------------------------------------------------------------------
 % This function will fit a model (model) using fmincon to a dataset (data) 
@@ -38,7 +38,8 @@ function model_output = fit_model(data, model, param_min, param_max, nStart, typ
 % -------------------------------------------------------------------------
 % EXAMPLES:
 % -------------------------------------------------------------------------
-% model_output = fit_model(data, model, param_min, param_max, nStart)
+% model_output = fit_model(data, model, param_min, param_max, nStart, type)
+% model_output = fit_model(data, 'linear_expect_model', param_min, param_max, nStart, type)
 %
 % -------------------------------------------------------------------------
 % Author and copyright information:
@@ -91,8 +92,8 @@ for s = 1:length(Subjects)
         params(s,length(xParMin) + 3) = penalizedmodelfit(-fvalMin, size(sdat,1), length(xParMin), 'type', type, 'metric', 'AIC');
         params(s,length(xParMin) + 4) = penalizedmodelfit(-fvalMin, size(sdat,1), length(xParMin), 'type', type, 'metric', 'BIC');
     elseif type =='SSE'
-        params(s,length(xParMin) + 3) = penalizedmodelfit(-fvalMin, size(sdat,1), length(xParMin), 'type', type, 'metric', 'AIC');
-        params(s,length(xParMin) + 4) = penalizedmodelfit(-fvalMin, size(sdat,1), length(xParMin), 'type', type, 'metric', 'BIC');
+        params(s,length(xParMin) + 3) = penalizedmodelfit(fvalMin, size(sdat,1), length(xParMin), 'type', type, 'metric', 'AIC');
+        params(s,length(xParMin) + 4) = penalizedmodelfit(fvalMin, size(sdat,1), length(xParMin), 'type', type, 'metric', 'BIC');
     end
     
     %aggregate trials
@@ -103,6 +104,11 @@ end
 model_output = struct;
 model_output.params = params;
 model_output.trial = allout;
+model_output.param_min = param_min;
+model_output.param_max = param_max;
+model_output.nStart = nStart;
+model_output.type = type;
+
 
 end %Function end
 

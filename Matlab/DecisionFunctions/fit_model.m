@@ -1,6 +1,6 @@
 function model_output = fit_model(data, model, param_min, param_max, nStart, type)
 
-% model_output = fit_model(data, model, param_min, param_max, nStart)
+% model_output = fit_model(data, model, param_min, param_max, nStart, type)
 %
 % -------------------------------------------------------------------------
 % This function will fit a model (model) using fmincon to a dataset (data) 
@@ -38,7 +38,8 @@ function model_output = fit_model(data, model, param_min, param_max, nStart, typ
 % -------------------------------------------------------------------------
 % EXAMPLES:
 % -------------------------------------------------------------------------
-% model_output = fit_model(data, model, param_min, param_max, nStart)
+% model_output = fit_model(data, model, param_min, param_max, nStart, type)
+% model_output = fit_model(data, 'linear_expect_model', [0.01 -10,-20], [1 10,20], 100, 'SSE')
 %
 % -------------------------------------------------------------------------
 % Author and copyright information:
