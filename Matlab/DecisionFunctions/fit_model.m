@@ -1,4 +1,4 @@
-function model_output = fit_model(data, model, param_min, param_max, nStart, type)
+function model_output = fit_model(data, model, param_min, param_max, nStart, type, varargin)
 
 % model_output = fit_model(data, model, param_min, param_max, nStart, type)
 %
@@ -28,6 +28,12 @@ function model_output = fit_model(data, model, param_min, param_max, nStart, typ
 %
 % type              Type of parameter estimation (e.g., maximizing LLE or
 %                   minimizing 'SSE').
+%
+% -------------------------------------------------------------------------
+% OPTIONAL INPUTS:
+% -------------------------------------------------------------------------
+% show_subject     Displays Subject ID for every iteration.  Helpful for
+%                  debugging.  Off by default.
 %
 % -------------------------------------------------------------------------
 % OUTPUTS:
@@ -62,9 +68,14 @@ function model_output = fit_model(data, model, param_min, param_max, nStart, typ
 
 global trialout
 
+% Defaults
+showSubject = 0;
+if strcmpi(varargin,'show_subject'); showSubject = 1; end
+
 Subjects = unique(data(:,1));
 allout = [];
 for s = 1:length(Subjects)
+    if showSubject; display(['Subject ', num2str(Subjects(s))]); end %Show Subject ID for every iteration if requested
     
     sdat = data(data(:,1)==Subjects(s),:); %Select subject's data
     
