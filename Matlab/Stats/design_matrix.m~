@@ -509,16 +509,17 @@ classdef design_matrix
             % obj = write(obj, varargin)
             %
             % -------------------------------------------------------------------
-            % write design_matrix object into csv file.  Will use obj.fname
-            % or can specify optional name
+            % write design_matrix object into csv file.  Will 
             %
             % -------------------------------------------------------------------
             % Optional Inputs
             % -------------------------------------------------------------------
-            % fname        : path and file name of csv file.
-            % -------------------------------------------------------------------
-
-                        
+            % fName        : path and file name of csv file.
+            %                   regressor in FSL's 3 column format (e.g., onset in sec, duration in sec, weight).
+            %
+            
+            % the data
+            
             if nargin > 1 %use supplied file name
                 if ischar(varargin{1})
                     hdr = sprintf('%s,',obj.varname{:});
