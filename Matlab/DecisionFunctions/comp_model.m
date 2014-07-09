@@ -429,7 +429,7 @@ classdef comp_model < design_matrix
             
         end
         
-        function f1 = plot(obj, columns)
+        function f1 = plot(obj, columns, varargin)
             % f1 = plot(obj)
             %
             % -------------------------------------------------------------------------
@@ -461,8 +461,8 @@ classdef comp_model < design_matrix
             % -------------------------------------------------------------------------
             % EXAMPLES:
             % -------------------------------------------------------------------------
-            % lin_model = fit_model(lin_model)
-            % lin_model = fit_model(lin_model, 'persistent_fmincon', 'show_subject')
+            % plot(lin_model, [3,4])
+            % plot(lin_model, [3,4], 'title', 'Linear Model', 'xlabel','session', 'ylabel', 'Average BDI', 'legend', {'Predicted','Observed'})
             %
             % -------------------------------------------------------------------------
             % Author and copyright information:
@@ -485,6 +485,10 @@ classdef comp_model < design_matrix
             
             sub = unique(obj.trial(:,1));
             trial = unique(obj.trial(:,2));
+            
+            if nargin < 2
+                error('Please add a vector indicating which columns of trial to plot')
+            end
             
             counter = 1;
             for c = columns
