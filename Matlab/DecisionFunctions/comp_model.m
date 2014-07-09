@@ -2,6 +2,16 @@ classdef comp_model < design_matrix
     
     % comp_model: data class for creating a computational model
     %
+    % Computational Model Class: comp_model
+    %
+    %--------------------------------------------------------------------------
+    % This object is used to fit a computational model to a multi-subject
+    % dataset.  The object uses the design_matrix() class to for the data set
+    % and has additional fields for the model and parameters for the model
+    % fitting procedure such as the parameter constraints, number of
+    % iterations, and type of estimation (e.g., maximum likelihood or least
+    % squares).
+    %    
     %--------------------------------------------------------------------------
     % Inputs:
     % ---------------------------------------------------------------------
@@ -12,10 +22,25 @@ classdef comp_model < design_matrix
     % model                     : name of model file (must be on matlab path)
     %
     %--------------------------------------------------------------------------
+    % Current Methods for comp_model (inherits from design_matrix class too)
+    %--------------------------------------------------------------------------
+    %
+    % avg_aic                   : display average AIC value
+    % avg_bic                   : display average BIC value
+    % avg_params                : display average parameter estimates
+    % comp_model                : class constructor
+    % fit_model                 : estimate parameters using model
+    % plot                      : plot average model predictions across subjects
+    % summary                   : display summary table for model
+    % save                      : save object as .mat file
+    % write_tables              : write out parameter estimates and trial-to-trial predictions to csv data frame.
+    %
+    %--------------------------------------------------------------------------
     % Examples:
     % ---------------------------------------------------------------------
     % m1 = comp_model([ones(10,1), (1:10)', (1:10).^2'],{'Intercept','X','X2'},'Linear_Model')
-    %
+    % 
+    % Also see CompModel_Tutorial.m in Examples
     % -------------------------------------------------------------------------
     % Author and copyright information:
     % -------------------------------------------------------------------------
@@ -34,10 +59,6 @@ classdef comp_model < design_matrix
     %     You should have received a copy of the GNU General Public License
     %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
     % -------------------------------------------------------------------------
-    
-    % Notes:
-    % Methods to Add
-    % plot
     
     properties
         % inherits properties from design_matrix
