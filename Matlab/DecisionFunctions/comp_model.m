@@ -11,7 +11,7 @@ classdef comp_model < design_matrix
     % fitting procedure such as the parameter constraints, number of
     % iterations, and type of estimation (e.g., maximum likelihood or least
     % squares).
-    %    
+    %
     %--------------------------------------------------------------------------
     % Inputs:
     % ---------------------------------------------------------------------
@@ -30,16 +30,21 @@ classdef comp_model < design_matrix
     % avg_params                : display average parameter estimates
     % comp_model                : class constructor
     % fit_model                 : estimate parameters using model
+    % get_aic                   : extract all subject's AIC values
+    % get_bic                   : extract all subject's BIC values
+    % get_params                : extract all subject's estimated
+    %                             parameters
     % plot                      : plot average model predictions across subjects
     % summary                   : display summary table for model
     % save                      : save object as .mat file
-    % write_tables              : write out parameter estimates and trial-to-trial predictions to csv data frame.
+    % write_tables              : write out parameter estimates and trial-to-trial
+    %                             predictions to csv data frame.
     %
     %--------------------------------------------------------------------------
     % Examples:
     % ---------------------------------------------------------------------
     % m1 = comp_model([ones(10,1), (1:10)', (1:10).^2'],{'Intercept','X','X2'},'Linear_Model')
-    % 
+    %
     % Also see CompModel_Tutorial.m in Examples
     % -------------------------------------------------------------------------
     % Author and copyright information:
@@ -427,6 +432,42 @@ classdef comp_model < design_matrix
             % -------------------------------------------------------------------------
             
             avgparams = nanmean(obj.params(:,2:length(obj.param_min)));
+        end
+        
+        function aic = get_aic(obj)
+            % aic = get_aic(obj)
+            %
+            % -------------------------------------------------------------------------
+            % This function returns all subject's AIC values after using
+            % model_fit()
+            % -------------------------------------------------------------------------
+            
+            aic = obj.params(:,end - 1);
+            
+        end
+        
+        function bic = get_bic(obj)
+            % bic = get_bic(obj)
+            %
+            % -------------------------------------------------------------------------
+            % This function returns all subject's BIC values after using
+            % model_fit()
+            % -------------------------------------------------------------------------
+            
+            bic = obj.params(:,end);
+            
+        end
+        
+        function params = get_params(obj)
+            % aic = get_params(obj)
+            %
+            % -------------------------------------------------------------------------
+            % This function returns all subject's estimated parameter values after using
+            % model_fit()
+            % -------------------------------------------------------------------------
+            
+            params = obj.params(:,2:length(obj.param_min));
+            
         end
         
         function summary = summary(obj)
