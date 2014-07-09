@@ -27,6 +27,7 @@
 %==========================================================================
 % Example Useage
 %==========================================================================
+%
 % Load data
 basedir = '~/Dropbox/TreatmentExpectations';
 dat = importdata(fullfile(basedir, 'Data','Seattle_Sona','seattle_ses_by_session.csv'));
@@ -41,7 +42,8 @@ options = optimset(options, 'TolX', 0.00001, 'TolFun', 0.00001, 'MaxFunEvals', 9
 %--------------------------------------------------------------------------
 %
 % requires data frame, cell array of column names, and model name.  
-% ModelName: must refer to function with the model on matlab path.
+% ModelName: must refer to function with the model on matlab path.  See
+% example 'linear_model' function below.
 %
 % Can also specify additional parameters for model fitting.
 % nStart: is the number of iterations to repeat model estimation, will pick
@@ -147,4 +149,51 @@ lin.save(fullfile(basedir,'Analysis','Modeling','Linear_ModelFit.mat'))
 plot(lin, [3,4], 'title', 'Linear Model', 'xlabel','session', 'ylabel', 'Average BDI', 'legend', {'Predicted','Observed'})
 
 %--------------------------------------------------------------------------
+
+
+%--------------------------------------------------------------------------
+% Example Model Function
+%--------------------------------------------------------------------------
+%
+% Here is an example function of a very simple linear model.  
+% Functions can be completely flexible, but need to have the free parameter (xpar) 
+% and data inputs and the model fit (sse here) as the output. 
+% This is so fmincon can optimize the parameters for this function by
+% minimizing the Sum of Squared Error (sse - for this example)
+% This function needs to be in a separate file.  
+
+function sse = linear_model(xpar, data)
+% Fit Linear Decay Treatment Model
+
+global trialout %this allows trial to be saved to comp_model() object
+
+% Model Parameters
+beta0 = xpar(1); % Intercept
+beta1 = xpar(2); % Slope
+
+% Parse Data
+obssx = data(:,8); %use BDI for now
+
+%Model Initial Values
+sse = 0; %sum of squared error
+time = 1:size(data,1);
+time = time - mean(time);
+
+% This model is looping through every trial.  Obviously this isn't
+% necessary for this specific model, but it is for more dynamic models that
+% change with respect to time.
+for t = 1:length(obssx)
+    
+    %Calculate symptom decay using linear or exponential decay
+    predsx(t) = beta0 + beta1 * time(t); %linear trend of symptom change
+    
+    % update sum of squared error (sse)
+    sse = sse + (predsx(t) - obssx(t))^2;
+    
+end
+
+%Output results - can add this as a global variable later
+trialout = [ones(t,1)*data(1,1) (1:t)', obssx, predsx(1:t)'];
+
+end % model
 
