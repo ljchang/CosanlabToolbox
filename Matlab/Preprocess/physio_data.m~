@@ -19,7 +19,7 @@ classdef physio_data < design_matrix
     % samplefreq                : Sampling frequency
     %
     %--------------------------------------------------------------------------
-    % Current Methods for comp_model (inherits from design_matrix class too)
+    % Current Methods for physio_data (inherits from design_matrix class too)
     %--------------------------------------------------------------------------
     %
     % calc_rate                 : Calculate Rate of peaks
@@ -34,9 +34,9 @@ classdef physio_data < design_matrix
     %--------------------------------------------------------------------------
     % Examples:
     % ---------------------------------------------------------------------
-    % m1 = comp_model([ones(10,1), (1:10)', (1:10).^2'],{'Intercept','X','X2'},'Linear_Model')
+    % pulse = physio_data(data(:,2),{'pulse'},settings.fs);
     %
-    % Also see CompModel_Tutorial.m in Examples
+    % Also see PhysioData_Tutorial.m in Examples
     % -------------------------------------------------------------------------
     % Author and copyright information:
     % -------------------------------------------------------------------------
@@ -55,6 +55,10 @@ classdef physio_data < design_matrix
     %     You should have received a copy of the GNU General Public License
     %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
     % -------------------------------------------------------------------------
+    
+    % NOTES:
+    % add ability to import .acq files
+    % finish downsampling method
     
     properties
         % inherits properties from design_matrix
@@ -372,8 +376,6 @@ classdef physio_data < design_matrix
             % -------------------------------------------------------------------------
             % data = calc_rate('lowpass', .05)
             %
-            % data.filter('bandpass', [.05, 2])
-            %
             % -------------------------------------------------------------------------
             
             % Defaults
@@ -425,9 +427,9 @@ classdef physio_data < design_matrix
             % -------------------------------------------------------------------------
             % EXAMPLES:
             % -------------------------------------------------------------------------
-            % data = calc_rate('lowpass', .05)
+            % data = data.downsample('Factor', 3) %downsample by a factor of 3
             %
-            % data.filter('bandpass', [.05, 2])
+            % data = data.downsample('Average', 1.3) %average over 1.3s TRs
             %
             % -------------------------------------------------------------------------
             
@@ -453,24 +455,21 @@ classdef physio_data < design_matrix
             % Downsample by a factor of 'f'
             if doFactor
                 obj.dat = downsample(obj.dat, f);
-                obj.samplefreq = samplefreq / f;
+                obj.samplefreq = obj.samplefreq / f;
             end
             
             % Average over window size of 'av' seconds
-            avsamp = av * obj.samplefreq; % average samples
             if doAverage
-               obj.dat 
+                avsamp = av * obj.samplefreq; % average samples
+                i = 1;
+                while i + avsamp <= size(obj,1)
+                    obj.dat(i:i + avsamp,:)
+                    i = i + avsamp;
+                end
             end
-           
+            %             a = 1:1.3*rpsfpulse.samplefreq:size(rpsfpulse,1);
+            %             b = repmat(1:1.3*rpsfpulse.samplefreq:size(rpsfpulse,1), 3 * rpsfpulse.samplefreq);
             
-            obj.dat(:,end + 1) = nan(size(obj,1),1); % Add rate to end of obj.dat
-            obj.varname = horzcat(obj.varname,'Rate');
-            halfwindow = floor(windowlen/2) * obj.samplefreq;
-            i = halfwindow;
-            while i + windowlen * obj.samplefreq <= size(obj,1)
-                obj.dat(i,end) = sum(obj.dat((i - halfwindow + 1):(i + halfwindow),strcmpi(obj.varname,'Peaks')) / windowlen) * 60;
-                i = i + 1;
-            end
         end
         
     end %methods

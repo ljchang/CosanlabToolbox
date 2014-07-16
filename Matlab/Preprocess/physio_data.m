@@ -455,16 +455,20 @@ classdef physio_data < design_matrix
             % Downsample by a factor of 'f'
             if doFactor
                 obj.dat = downsample(obj.dat, f);
-                obj.samplefreq = samplefreq / f;
+                obj.samplefreq = obj.samplefreq / f;
             end
             
-%             % Average over window size of 'av' seconds
-%             avsamp = av * obj.samplefreq; % average samples
-%             if doAverage
-%                 obj.dat
-%             end
-%             a = 1:1.3*rpsfpulse.samplefreq:size(rpsfpulse,1);
-%             b = repmat(1:1.3*rpsfpulse.samplefreq:size(rpsfpulse,1), 3 * rpsfpulse.samplefreq);
+            % Average over window size of 'av' seconds
+            if doAverage
+                avsamp = av * obj.samplefreq; % average samples
+                i = 1;
+                while i + avsamp <= size(obj,1)
+                    ds_dat(i,:) = nanmean(obj.dat(i:i + avsamp,:));
+                    i = i + avsamp;
+                end
+            end
+            %             a = 1:1.3*rpsfpulse.samplefreq:size(rpsfpulse,1);
+            %             b = repmat(1:1.3*rpsfpulse.samplefreq:size(rpsfpulse,1), 3 * rpsfpulse.samplefreq);
             
         end
         
