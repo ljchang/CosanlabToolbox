@@ -376,8 +376,6 @@ classdef physio_data < design_matrix
             % -------------------------------------------------------------------------
             % data = calc_rate('lowpass', .05)
             %
-            % data.filter('bandpass', [.05, 2])
-            %
             % -------------------------------------------------------------------------
             
             % Defaults
@@ -429,9 +427,9 @@ classdef physio_data < design_matrix
             % -------------------------------------------------------------------------
             % EXAMPLES:
             % -------------------------------------------------------------------------
-            % data = calc_rate('lowpass', .05)
+            % data = data.downsample('Factor', 3) %downsample by a factor of 3
             %
-            % data.filter('bandpass', [.05, 2])
+            % data = data.downsample('Average', 1.3) %average over 1.3s TRs
             %
             % -------------------------------------------------------------------------
             
