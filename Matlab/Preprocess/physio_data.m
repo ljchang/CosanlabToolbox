@@ -137,9 +137,9 @@ classdef physio_data < design_matrix
             %
             % -------------------------------------------------------------------------
             
-            if nargin > 1 %use supplied file name
+            if nargin >= 1 %use supplied file name
                 if ischar(varargin{1})
-                    save(fullfile(varargin{1},[obj.model '.mat']), 'obj')
+                    save(varargin{1}, 'obj')
                 end
                 
             elseif ~isempty(obj.fname) %use obj.fname
@@ -461,11 +461,18 @@ classdef physio_data < design_matrix
             % Average over window size of 'av' seconds
             if doAverage
                 avsamp = av * obj.samplefreq; % average samples
+                nTR = floor(size(obj,1)/avsamp); %number of TRs in Dataset
                 i = 1;
-                while i + avsamp <= size(obj,1)
-                    ds_dat(i,:) = nanmean(obj.dat(i:i + avsamp,:));
-                    i = i + avsamp;
+                start  = 1;
+                stop = start + avsamp;
+                while i <= nTR
+                    ds_dat(i,:) = nanmean(obj.dat(start: stop,:));
+                    i = i + 1;
+                    start = start + avsamp;
+                    stop = stop + avsamp;
                 end
+                obj.dat = ds_dat; % Update data with averaged data
+                obj.samplefreq = 1 / av; % New sampling frequency
             end
             %             a = 1:1.3*rpsfpulse.samplefreq:size(rpsfpulse,1);
             %             b = repmat(1:1.3*rpsfpulse.samplefreq:size(rpsfpulse,1), 3 * rpsfpulse.samplefreq);

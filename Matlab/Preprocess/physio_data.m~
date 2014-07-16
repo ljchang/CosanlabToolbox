@@ -461,10 +461,13 @@ classdef physio_data < design_matrix
             % Average over window size of 'av' seconds
             if doAverage
                 avsamp = av * obj.samplefreq; % average samples
+                nTR = floor(size(obj,1)/avsamp); %number of TRs in Dataset
                 i = 1;
-                while i + avsamp <= size(obj,1)
-                    obj.dat(i:i + avsamp,:)
-                    i = i + avsamp;
+                start  = 1;
+                while i <= nTR
+                    ds_dat(i,:) = nanmean(obj.dat(start: i + avsamp,:));
+                    i = i + 1;
+                    start = 
                 end
             end
             %             a = 1:1.3*rpsfpulse.samplefreq:size(rpsfpulse,1);
