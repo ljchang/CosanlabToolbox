@@ -19,7 +19,7 @@ classdef physio_data < design_matrix
     % samplefreq                : Sampling frequency
     %
     %--------------------------------------------------------------------------
-    % Current Methods for comp_model (inherits from design_matrix class too)
+    % Current Methods for physio_data (inherits from design_matrix class too)
     %--------------------------------------------------------------------------
     %
     % calc_rate                 : Calculate Rate of peaks
@@ -34,9 +34,9 @@ classdef physio_data < design_matrix
     %--------------------------------------------------------------------------
     % Examples:
     % ---------------------------------------------------------------------
-    % m1 = comp_model([ones(10,1), (1:10)', (1:10).^2'],{'Intercept','X','X2'},'Linear_Model')
+    % pulse = physio_data(data(:,2),{'pulse'},settings.fs);
     %
-    % Also see CompModel_Tutorial.m in Examples
+    % Also see PhysioData_Tutorial.m in Examples
     % -------------------------------------------------------------------------
     % Author and copyright information:
     % -------------------------------------------------------------------------
