@@ -46,8 +46,6 @@ rpsfdpulse = psfdpulse.calc_rate('WindowLength', 4);
 % This is useful if you want to combine this with other data that has a 
 % lower sampling resolution, such as fMRI
 drpsfdpulse = rpsfdpulse.downsample('Average', 1.3);
-            a = 1:1.3 * rpsfdpulse.samplefreq:size(rpsfdpulse,1);
-            b = repmat(a, 1, 1.3 * rpsfdpulse.samplefreq);
 % -------------------------------------------------------------------------
 
 % -------------------------------------------------------------------------
