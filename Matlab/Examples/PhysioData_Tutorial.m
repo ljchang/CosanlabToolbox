@@ -1,4 +1,4 @@
-% Here is an example of processing Heartrate data acquired from biopac.
+% Here is an example of processing Heart Rate data acquired from biopac plethysmograph.
 % -------------------------------------------------------------------------
 
 % -------------------------------------------------------------------------
@@ -33,7 +33,6 @@ psfdpulse = peakdetect(sfdpulse,'plot','MinPeakHeight',mean(sfdpulse.dat));
 sum(psfdpulse.dat(:,end))
 % -------------------------------------------------------------------------
 
-
 % -------------------------------------------------------------------------
 % 6) Calculate beats per minute with a centered sliding window of 4 sec.
 % This method currently runs a for loop over the data and is a bit slow.
@@ -55,6 +54,6 @@ drpsfdpulse = drpsfdpulse.removevariable([1,2]); % Select only Averaged HR
 plot(drpsfdpulse)
 drpsfdpulse.write(fullfile(fPath, 'HR_drpsfd.txt')); % Write out average HR for each TR
 rpsfdpulse.save(fullfile(fPath, 'HR_rpsfd.mat')); % Save Object to .mat file
-
-
 % -------------------------------------------------------------------------
+
+
