@@ -2,8 +2,6 @@ classdef physio_data < design_matrix
     
     % physio_data: data class for creating a physiological data object
     %
-    % Physiological Data Class: physio_data
-    %
     %--------------------------------------------------------------------------
     % This object is used to represent physiological data.  The object uses the
     % design_matrix() class to for the data set and has additional fields for the
@@ -16,6 +14,7 @@ classdef physio_data < design_matrix
     %
     % varname                   : Cell array containing variable names.  Must
     %                             match number of column in data matrix
+    %
     % samplefreq                : Sampling frequency
     %
     %--------------------------------------------------------------------------
@@ -23,7 +22,7 @@ classdef physio_data < design_matrix
     %--------------------------------------------------------------------------
     %
     % calc_rate                 : Calculate Rate of peaks
-    % downsample                : display average parameter estimates
+    % downsample                : downsample dataset
     % filter                    : Filter data
     % peakdetect                : Find peaks in data
     % physio_data               : class constructor
@@ -58,7 +57,7 @@ classdef physio_data < design_matrix
     
     % NOTES:
     % add ability to import .acq files
-    % finish downsampling method
+    % add ability to quickly check all peaks?
     
     properties
         % inherits properties from design_matrix
@@ -473,10 +472,7 @@ classdef physio_data < design_matrix
                 end
                 obj.dat = ds_dat; % Update data with averaged data
                 obj.samplefreq = 1 / av; % New sampling frequency
-            end
-            %             a = 1:1.3*rpsfpulse.samplefreq:size(rpsfpulse,1);
-            %             b = repmat(1:1.3*rpsfpulse.samplefreq:size(rpsfpulse,1), 3 * rpsfpulse.samplefreq);
-            
+            end            
         end
         
     end %methods
