@@ -466,7 +466,7 @@ classdef comp_model < design_matrix
             % model_fit()
             % -------------------------------------------------------------------------
             
-            params = obj.params(:,2:length(obj.param_min + 1));
+            params = obj.params(:,2:length(obj.param_min)+ 1);
             
         end
         
