@@ -2,7 +2,7 @@
 % Here is an example of running an fMRI first level model using cosanlab
 % and canlab tools.  This is a very flexible procedure and can be scripted
 % in a variety of ways.
-% 
+%
 % Required toolboxes:
 % 1) cosanlab toolbox
 % 2) spm
@@ -66,8 +66,8 @@ for i = 1:length(sub)
         % -------------------------------------------------------------------------
         srdm = design_matrix(int,{'Intercept1','Intercept2','Intercept3','Intercept4'});
         for k = 1:13
+            getdat = s(s(:,3)==k & s(:,2)==run(j),4:6); %Grab onset data for condition and run
             %check if regressor exists
-            getdat = s(s(:,3)==k,4:6);
             if ~isempty(getdat)
                 srdm = srdm.onsettimes({getdat}, con(k), 2, 'sec2tr');
             else %fill in with empty regressor - will complain about being rank deficient
