@@ -523,15 +523,15 @@ classdef design_matrix
                 if ischar(varargin{1})
                     hdr = sprintf('%s,',obj.varname{:});
                     hdr(end) = '';
-                    dlmwrite(varargin{1}, hdr,'') %Write Header 1st
-                    dlmwrite(varargin{1}, obj.dat, 'delimiter',',','-append') %Append data
+                    dlmwrite(varargin{1}, hdr,'','precision',10) %Write Header 1st
+                    dlmwrite(varargin{1}, obj.dat, 'delimiter',',','-append','precision',10) %Append data
                 end
                 
             elseif ~isempty(obj.fname) %use obj.fname
                 hdr = sprintf('%s,',obj.varname{:});
                 hdr(end) = '';
-                dlmwrite(obj.fname, hdr, ''); %Write Header 1st
-                dlmwrite(obj.fname, obj.dat, 'delimiter',',','-append') %Append data
+                dlmwrite(obj.fname, hdr, '','precision',10); %Write Header 1st
+                dlmwrite(obj.fname, obj.dat, 'delimiter',',','-append','precision',10) %Append data
             else
                 error('Please supply valid file name with path to save.')
             end
