@@ -1,0 +1,23 @@
+function timing = geometric_progression(minTime, nTrials, meanTime)
+
+%%Search through different exponential distributions until mean is
+%%approximately meanTime
+minTime = 2;
+meanTime = 4;
+nTrials = 10;
+p = 0.0001:.001:1;
+
+mn = meanTime + 1;
+i = 1;
+while round(mn) > meanTime
+    timing = [];
+    Trials = nTrials;
+    Time = minTime;
+    while length(timing) < nTrials
+        timing = [timing; repmat(Time,ceil(Trials * p(i)),1)];
+        Time = Time + 1;
+        Trials = nTrials - length(timing);
+    end
+    mn = mean(timing);
+    i = i + 1;
+end
