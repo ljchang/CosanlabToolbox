@@ -706,74 +706,75 @@ classdef comp_model < handle & design_matrix
                 trdata = obj.dat(ismember(obj.dat(:,1),Subjects(Ind.training(s))),:);
                 tedata = obj.dat(ismember(obj.dat(:,1),Subjects(Ind.test(s))),:);
                 
-                
-                allout = [];
-                
-                
-                %Find Best fitting parameter if running multiple starting parameters
-                [xParMin, fvalMin] = FindParamMin(xpar, fval);
-                
-                %output parameters
-                params(s,1) = Subjects(s);
-                params(s,2:length(xParMin) + 1) = xParMin;
-                params(s,length(xParMin) + 2) = fvalMin;
-                if obj.esttype == 'LLE'
-                    params(s,length(xParMin) + 3) = penalizedmodelfit(-fvalMin, size(sdat,1), length(xParMin), 'type', obj.esttype, 'metric', 'AIC');
-                    params(s,length(xParMin) + 4) = penalizedmodelfit(-fvalMin, size(sdat,1), length(xParMin), 'type', obj.esttype, 'metric', 'BIC');
-                elseif obj.esttype =='SSE'
-                    params(s,length(xParMin) + 3) = penalizedmodelfit(fvalMin, size(sdat,1), length(xParMin), 'type', obj.esttype, 'metric', 'AIC');
-                    params(s,length(xParMin) + 4) = penalizedmodelfit(fvalMin, size(sdat,1), length(xParMin), 'type', obj.esttype, 'metric', 'BIC');
-                end
-                
-                %aggregate trials
-                allout = [allout; trialout];
             end
             
-            %--------------------------------------------------------------------------
-            % Collate Output
-            %--------------------------------------------------------------------------
+            allout = [];
             
-            obj.params = params;
-            obj.trial = allout;
             
-            %--------------------------------------------------------------------------
-            % Subfunctions
-            %--------------------------------------------------------------------------
+            %Find Best fitting parameter if running multiple starting parameters
+            [xParMin, fvalMin] = FindParamMin(xpar, fval);
             
-            function f = nested_crossvalidation(xpar, trdata, tedata)
-                for s = 1:length(Subjects)
-                    %                 if showSubject; display(['Subject ', num2str(Subjects(s))]); end %Show Subject ID for every iteration if requested
+            %output parameters
+            params(s,1) = Subjects(s);
+            params(s,2:length(xParMin) + 1) = xParMin;
+            params(s,length(xParMin) + 2) = fvalMin;
+            if obj.esttype == 'LLE'
+                params(s,length(xParMin) + 3) = penalizedmodelfit(-fvalMin, size(sdat,1), length(xParMin), 'type', obj.esttype, 'metric', 'AIC');
+                params(s,length(xParMin) + 4) = penalizedmodelfit(-fvalMin, size(sdat,1), length(xParMin), 'type', obj.esttype, 'metric', 'BIC');
+            elseif obj.esttype =='SSE'
+                params(s,length(xParMin) + 3) = penalizedmodelfit(fvalMin, size(sdat,1), length(xParMin), 'type', obj.esttype, 'metric', 'AIC');
+                params(s,length(xParMin) + 4) = penalizedmodelfit(fvalMin, size(sdat,1), length(xParMin), 'type', obj.esttype, 'metric', 'BIC');
+            end
+            
+            %aggregate trials
+            allout = [allout; trialout];
+        end
+        
+        %--------------------------------------------------------------------------
+        % Collate Output
+        %--------------------------------------------------------------------------
+        
+        obj.params = params;
+        obj.trial = allout;
+        
+        %--------------------------------------------------------------------------
+        % Subfunctions
+        %--------------------------------------------------------------------------
+        
+        function f = nested_crossvalidation(xpar, trdata, tedata)
+            for s = 1:length(Subjects)
+                %                 if showSubject; display(['Subject ', num2str(Subjects(s))]); end %Show Subject ID for every iteration if requested
+                
+                sdat = obj.dat(obj.dat(:,1)==Subjects(s),:); %Select subject's data
+                
+                xpar = zeros(obj.nStart,length(obj.param_min)); fval = zeros(obj.nStart,1); exitflag = zeros(obj.nStart,1); out = {obj.nStart,1};  %Initialize values to workspace
+                
+                for iter = 1:obj.nStart  %Loop through multiple iterations of nStart
                     
-                    sdat = obj.dat(obj.dat(:,1)==Subjects(s),:); %Select subject's data
+                    %generate random initial starting values for free parameters
+                    for ii = 1:length(obj.param_min)
+                        ipar(ii) = random('Uniform',obj.param_min(ii),obj.param_max(ii),1,1);
+                    end
                     
-                    xpar = zeros(obj.nStart,length(obj.param_min)); fval = zeros(obj.nStart,1); exitflag = zeros(obj.nStart,1); out = {obj.nStart,1};  %Initialize values to workspace
-                    
-                    for iter = 1:obj.nStart  %Loop through multiple iterations of nStart
-                        
-                        %generate random initial starting values for free parameters
-                        for ii = 1:length(obj.param_min)
-                            ipar(ii) = random('Uniform',obj.param_min(ii),obj.param_max(ii),1,1);
-                        end
-                        
-                        if ~persist
+                    if ~persist
+                        [xpar(iter,1:length(obj.param_min)) fval(iter) exitflag(iter) out{iter}]=fmincon(str2func(obj.model), ipar, [], [], [], [], obj.param_min, obj.param_max, [], [], sdat);
+                    else
+                        try
                             [xpar(iter,1:length(obj.param_min)) fval(iter) exitflag(iter) out{iter}]=fmincon(str2func(obj.model), ipar, [], [], [], [], obj.param_min, obj.param_max, [], [], sdat);
-                        else
-                            try
-                                [xpar(iter,1:length(obj.param_min)) fval(iter) exitflag(iter) out{iter}]=fmincon(str2func(obj.model), ipar, [], [], [], [], obj.param_min, obj.param_max, [], [], sdat);
-                            catch
-                                display('Fmincon Could Not Converge.  Skipping Iteration')
-                                xpar(iter,1:length(obj.param_min)) = nan(1,length(obj.param_min));
-                                fval(iter) = nan;
-                                exitflag(iter) = nan;
-                                out{iter} = nan;
-                            end
+                        catch
+                            display('Fmincon Could Not Converge.  Skipping Iteration')
+                            xpar(iter,1:length(obj.param_min)) = nan(1,length(obj.param_min));
+                            fval(iter) = nan;
+                            exitflag(iter) = nan;
+                            out{iter} = nan;
                         end
                     end
                 end
             end
-            
-        end %Function end
+        end
         
-    end %methods
+    end %Function end
+    
+end %methods
 end %class
 

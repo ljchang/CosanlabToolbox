@@ -1,4 +1,4 @@
-classdef physio_data < design_matrix
+classdef physio_data < design_matrix & handle
     
     % physio_data: data class for creating a physiological data object
     %

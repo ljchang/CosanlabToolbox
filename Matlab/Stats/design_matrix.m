@@ -1,4 +1,4 @@
-classdef design_matrix
+classdef design_matrix < handle
     % design_matrix: data class for creating a design matrix to be used with a linear model including fmri data.
     %
     %
