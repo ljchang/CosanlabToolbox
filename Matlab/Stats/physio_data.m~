@@ -56,8 +56,7 @@ classdef physio_data < design_matrix & handle
     % -------------------------------------------------------------------------
     
     % NOTES:
-    % add ability to import .acq files - the available functions on matlab
-    % file exchange don't work with our files, use Nate Vack's Python toolbox https://github.com/njvack/bioread
+    % add ability to import .acq files
     % add ability to quickly check all peaks?
     
     properties
@@ -340,19 +339,17 @@ classdef physio_data < design_matrix & handle
             doSpan = 0;
             
             % Parse input
-            span_ind = strcmpi('span',varargin);
-            if any(span_ind)
-                span = varargin{find(span_ind==1) + 1};
-                doSpan = 1;
-                varargin(find(span_ind==1) + 1) = [];
-                varargin(span_ind) = [];
-            end
+                    if any(strcmpi('span',varargin))
+                        span = varargin{varg + 1};
+                        doSpan = 1;
+                        varargin(varg) = []; varargin(varg + 1) = [];
+                    end
             
             % Use Matlab's findpeaks algorithm to find peaks
             if ~doSpan
                 obj.dat = smooth(obj.dat,5,'moving'); %span 5
             else
-                obj.dat = smooth(obj.dat, span, 'moving'); % custom span
+                obj.dat = smooth(obj.dat, span, varargin); % custom span
             end
         end
         
