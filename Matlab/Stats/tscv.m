@@ -109,39 +109,41 @@ switch xval_type
         end
         
         start = 1;
+        xval_index = 1;
         while start <= (vectorlen - (2*v))
             
             %Initialize vector as zeros
-            trIdx{start} = false(vectorlen,1);
-            teIdx{start} = false(vectorlen,1);
+            trIdx{xval_index} = false(vectorlen,1);
+            teIdx{xval_index} = false(vectorlen,1);
             
             if start <= g+h+1 % adjustment for the g+h first - add points to training on other side of test
                 if start <= h+1
-                    trIdx{start}((start + 2*v+1 + h) : (start + 2*v + h + 2*g)) = true;
-                    teIdx{start}(start:(start + 2*v)) = true; %test set = 2*v + 1
+                    trIdx{xval_index}((start + 2*v+1 + h) : (start + 2*v + h + 2*g)) = true;
+                    teIdx{xval_index}(start:(start + 2*v)) = true; %test set = 2*v + 1
                 else
-                    trIdx{start}((start - (start-1)) : (start - h-1)) = true;
-                    trIdx{start}((start + 2*v+1 + h) : (h + 2*v+1 + h + 2*g)) = true;
-                    teIdx{start}(start:(start + 2*v)) = true; %test set = 2*v + 1
+                    trIdx{xval_index}((start - (start-1)) : (start - h-1)) = true;
+                    trIdx{xval_index}((start + 2*v+1 + h) : (h + 2*v+1 + h + 2*g)) = true;
+                    teIdx{xval_index}(start:(start + 2*v)) = true; %test set = 2*v + 1
                 end
                 
             elseif start >= (vectorlen - ((2*v) + g+h)) % adjustment for the g+h last timepoints  - add points to training on other side of test
                 if start > (vectorlen - (2*v + h))
-                    trIdx{start}((start - (2*g + h)) : (start - h - 1)) = true; %(start - (g + h)) : (start - h - 1)
-                    teIdx{start}(start:(start + 2*v)) = true;
+                    trIdx{xval_index}((start - (2*g + h)) : (start - h - 1)) = true; %(start - (g + h)) : (start - h - 1)
+                    teIdx{xval_index}(start:(start + 2*v)) = true;
                 else
-                    trIdx{start}((vectorlen - stepsize + 1) : (start - h -1)) = true;
-                    trIdx{start}((start + (2*v+1) + h) : vectorlen) = true;
-                    teIdx{start}(start:(start + 2*v)) = true;
+                    trIdx{xval_index}((vectorlen - stepsize + 1) : (start - h -1)) = true;
+                    trIdx{xval_index}((start + (2*v+1) + h) : vectorlen) = true;
+                    teIdx{xval_index}(start:(start + 2*v)) = true;
                 end
                 
             else %Normal hvg block
-                trIdx{start}((start- (g+h)):(start - h - 1)) = true; %train set = everything - 2*v + 2*h + 1
-                trIdx{start}((start + (2*v+1) + h): (start + (2*v+1) + h + g -1)) = true; %train set = everything - 2*v + 2*h + 1
-                teIdx{start}(start:(start + 2*v)) = true;
+                trIdx{xval_index}((start- (g+h)):(start - h - 1)) = true; %train set = everything - 2*v + 2*h + 1
+                trIdx{xval_index}((start + (2*v+1) + h): (start + (2*v+1) + h + g -1)) = true; %train set = everything - 2*v + 2*h + 1
+                teIdx{xval_index}(start:(start + 2*v)) = true;
                 %teIdx{start}((start + g + h):(start + g + h + 2*v)) = true; %test set = 2*v + 1
             end
             start = start + 1 + 2*v;
+            xval_index = xval_index + 1;
         end
 
 end
