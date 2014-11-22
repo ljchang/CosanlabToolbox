@@ -49,11 +49,6 @@ function [trIdx, teIdx] = tscv(vectorlen, varargin)
 % HE & LC 11/19/14: 
 %       -increased the test data used by adjusting how the training blocks work at the ends
 
-vectorlen = 266;
-h = 5;
-v = 5;
-g = 40;
-
 for i = 1:length(varargin)
     if ischar(varargin{i})
         switch varargin{i}
