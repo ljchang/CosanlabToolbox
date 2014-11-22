@@ -85,12 +85,14 @@ switch xval_type
         end
         
         start = 1;
+        xval_index = 1;
         while start <= vectorlen - stepsize + 1
-            trIdx{start} = true(vectorlen,1);
-            teIdx{start} = false(vectorlen,1);
-            trIdx{start}(start:(start + 2*h + 2*v)) = false; %train set = everything - 2*v + 2*h + 1
-            teIdx{start}((start + h):(start + h + 2*v)) = true; %test set = 2*v + 1
+            trIdx{xval_index} = true(vectorlen,1);
+            teIdx{xval_index} = false(vectorlen,1);
+            trIdx{xval_index}(start:(start + 2*h + 2*v)) = false; %train set = everything - 2*v + 2*h + 1
+            teIdx{xval_index}((start + h):(start + h + 2*v)) = true; %test set = 2*v + 1
             start = start + 1 + 2*v;
+            xval_index = xval_index + 1;
         end
         
     case 'rolling' % this needs to be fixed.
