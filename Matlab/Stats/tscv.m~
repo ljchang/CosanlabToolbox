@@ -95,7 +95,7 @@ switch xval_type
             teIdx{start} = false(vectorlen,1);
             trIdx{start}(start:(start + 2*h + 2*v)) = false; %train set = everything - 2*v + 2*h + 1
             teIdx{start}((start + h):(start + h + 2*v)) = true; %test set = 2*v + 1
-            start = start + 1 + 2*v;
+            start = start + 1;
         end
         
     case 'rolling' % this needs to be fixed.
@@ -146,8 +146,9 @@ switch xval_type
                 teIdx{start}(start:(start + 2*v)) = true;
                 %teIdx{start}((start + g + h):(start + g + h + 2*v)) = true; %test set = 2*v + 1
             end
-            start = start + 1 + 2*v;
+            start = start + 1;
         end
-
+        
+        
 end
 
