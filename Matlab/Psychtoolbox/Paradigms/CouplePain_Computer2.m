@@ -49,12 +49,21 @@
 % 7) pain with partner holding hand
 % 8) pain with no partner in room and press button after each pain (message sharing control)
 
+%% Testing Settings
+
+ShowCursor;
+screens = Screen('Screens');
+% screenNumber = min(screens);
+% [window rect] = Screen('OpenWindow', screenNumber, 0, [800 0 1600 600]);
 
 %% GLOBAL PARAMETERS
 
 clear all; close all; fclose all;
-fPath = '~/Dropbox/RomanticCouples/CouplesParadigm';
-addpath(genpath(fullfile(fPath,'SupportFunctions')));
+% fPath = '/Users/lukechang/Dropbox/RomanticCouples/CouplesParadigm';
+% cosanlabToolsPath = '/Users/lukechang/Dropbox/Github/Cosanlabtoolbox/Matlab/Psychtoolbox';
+fPath = '/Users/ljchang/Dropbox/RomanticCouples/CouplesParadigm';
+cosanlabToolsPath = '/Users/ljchang/Dropbox/Github/Cosanlabtoolbox/Matlab/Psychtoolbox';
+addpath(genpath(fullfile(cosanlabToolsPath,'SupportFunctions')));
 
 % random number generator reset
 rand('state',sum(100*clock));
@@ -71,14 +80,15 @@ RATINGDUR = 1;
 CUEDUR = 1;
 ENDSCREENDUR = 3;
 STARTFIX = 1;
+FEEDBACKDUR = 3;
 
 % Condition - will be function input
-CONDITION = 1;
-SUBID = 201;
+% CONDITION = 1;
+% SUBID = 201;
 EXPERIMENTER = 1;
 
 %% PREPARE DISPLAY
-% will break with error message if Screen() can't run
+% % will break with error message if Screen() can't run
 AssertOpenGL;
 
 % Here we call some default settings for setting up Psychtoolbox
@@ -89,10 +99,11 @@ AssertOpenGL;
 screens = Screen('Screens');
 screenNumber = max(screens);
 
+
 % Prepare the screen
 [window rect] = Screen('OpenWindow',screenNumber);
 Screen('fillrect', window, screenNumber);
-HideCursor;
+% HideCursor;
 
 % Configure screen
 disp.screenWidth = rect(3);
@@ -102,80 +113,43 @@ disp.ycenter = disp.screenHeight/2;
 
 %%% create FIXATION screen
 disp.fixation.w = Screen('OpenOffscreenWindow',screenNumber);
-
-% paint black
-Screen('FillRect',disp.fixation.w,screenNumber);
-
-% add text
+Screen('FillRect',disp.fixation.w,screenNumber); % paint black
 Screen('TextSize',disp.fixation.w,60);
-DrawFormattedText(disp.fixation.w,'+','center','center',255);
+DrawFormattedText(disp.fixation.w,'+','center','center',255); % add text
+
 
 %%% create INSTRUCTIONS screen
 halfheight = ceil((0.75*disp.screenHeight)/2);
 halfwidth = ceil(halfheight/.75);
 disp.instruct.rect = [[disp.xcenter disp.ycenter]-[halfwidth halfheight] [disp.xcenter disp.ycenter]+[halfwidth halfheight]];
 disp.instruct.w = Screen('OpenOffscreenWindow',screenNumber);
+Screen('FillRect',disp.instruct.w,screenNumber); % paint black
 
-% paint black
-Screen('FillRect',disp.instruct.w,screenNumber);
+% % determine cursor parameters
+% cursor.xmin = disp.scale.rect(1) + 123;
+% cursor.width = 709;
+% cursor.xmax = cursor.xmin + cursor.width;
+% cursor.size = 8;
+% cursor.center = cursor.xmin + ceil(cursor.width/2);
+% cursor.y = disp.scale.rect(4) - 41;
+% cursor.labels = cursor.xmin + [10 42 120 249 379];
 
-% add instructions image
-image = imread(fullfile(fPath,'SupportFunctions','CameraBase_2_2.png'));
-texture = Screen('MakeTexture',window,image);
-Screen('DrawTexture',disp.instruct.w,texture,[],disp.instruct.rect)
-
-%%% create Rating screen
-disp.scale.width = 964;
-disp.scale.height = 252;
-disp.scale.w = Screen('OpenOffscreenWindow',screenNumber);
-
-% add scale image
-disp.scale.imagefile = fullfile(fPath,'SupportFunctions','bartoshuk_scale.jpg');
-image = imread(disp.scale.imagefile);
-disp.scale.texture = Screen('MakeTexture',window,image);
-
-% placement
-disp.scale.rect = [[disp.xcenter disp.ycenter]-[0.5*disp.scale.width 0.5*disp.scale.height] [disp.xcenter disp.ycenter]+[0.5*disp.scale.width 0.5*disp.scale.height]];
-Screen('DrawTexture',disp.scale.w,disp.scale.texture,[],disp.scale.rect);
-
-% determine cursor parameters
-cursor.xmin = disp.scale.rect(1) + 123;
-cursor.width = 709;
-cursor.xmax = cursor.xmin + cursor.width;
-cursor.size = 8;
-cursor.center = cursor.xmin + ceil(cursor.width/2);
-cursor.y = disp.scale.rect(4) - 41;
-cursor.labels = cursor.xmin + [10 42 120 249 379];
-
-%%% create ShowFeeling screen
-disp.showfeeling.width = 964;
-disp.showfeeling.height = 252;
-disp.showfeeling.w = Screen('OpenOffscreenWindow',screenNumber);
-
-% add scale image
-disp.showfeeling.imagefile = fullfile(fPath,'SupportFunctions','bartoshuk_scale.jpg');
-image = imread(disp.showfeeling.imagefile);
-disp.showfeeling.texture = Screen('MakeTexture',window,image);
-
-% placement
-disp.showfeeling.rect = [[disp.xcenter disp.ycenter]-[0.5*disp.showfeeling.width 0.5*disp.showfeeling.height] [disp.xcenter disp.ycenter]+[0.5*disp.showfeeling.width 0.5*disp.showfeeling.height]];
-Screen('DrawTexture',disp.showfeeling.w,disp.showfeeling.texture,[],disp.showfeeling.rect);
 
 % Add text
 % [newX,newY]=Screen('DrawText', disp.share, text [,x] [,y] [,color] [,backgroundColor] [,yPositionIsBaseline] [,swapTextDirection]);
 % [newX,newY]=Screen('DrawText', disp.share, );
 % Screen('TextSize',disp.fixation.w,60);
-DrawFormattedText(disp.share.w,'This is how your partner wanted you to know how they are feeling.  Press space to acknowledge message and proceed.','top','center',255);
+% DrawFormattedText(disp.share.w,'This is how your partner wanted you to know how they are feeling.  Press space to acknowledge message and proceed.','top','center',255);
 
-
-% determine cursor parameters
-cursor.xmin = disp.showfeeling.rect(1) + 123;
-cursor.width = 709;
-cursor.xmax = cursor.xmin + cursor.width;
-cursor.size = 8;
-cursor.center = cursor.xmin + ceil(cursor.width/2);
-cursor.y = disp.showfeeling.rect(4) - 41;
-cursor.labels = cursor.xmin + [10 42 120 249 379];
+% 
+% % determine cursor parameters
+% cursor.xmin = disp.showfeeling.rect(1) + 123;
+% cursor.width = 709;
+% cursor.xmax = cursor.xmin + cursor.width;
+% cursor.size = 8;
+% cursor.center = cursor.xmin + ceil(cursor.width/2);
+% cursor.y = disp.showfeeling.rect(4) - 41;
+% cursor.labels = cursor.xmin + [10 42 120 249 379];
 
 % Make a base Rect of 200 by 200 pixels
 baseMark = [0 0 20 20];
@@ -190,13 +164,6 @@ DrawFormattedText(disp.stimulation.w,'Partner is receiving pain','center','cente
 % clean up
 clear image texture
 
-%% Instructions
-
-% instructions= sprintf('During this task you will see different images.\nYou will be asked questions about these images later.\nPlease remain still and alert, and get ready to begin.');
-% waitScan='Wait for scanner...';
-% % waitExper='Wait for experimenter...';
-% endrun='Thank you. You have completed the experiment.';
-% fixation='+';
 
 %% PREPARE FOR INPUT
 % Enable unified mode of KbName, so KbName accepts identical key names on
@@ -208,20 +175,12 @@ key.space = KbName('SPACE');
 key.ttl = KbName('5%');
 key.s = KbName('s');
 key.p = KbName('p');
+key.q = KbName('q');
 key.esc = KbName('ESCAPE');
 
-%% PREPARE DEVICES
 
-if USE_VIDEO
-    vid = videoinput('macvideo', 1);
-    set(vid, 'FramesPerTrigger', Inf);
-    set(vid, 'ReturnedColorspace', 'rgb');
-    set(vid,'LoggingMode','disk');
-    mp4 = VideoWriter(fullfile(fPath,'Data',['Video_' num2str(SUBID) '_Condition' num2str(CONDITION) '.mp4']),'MPEG-4');
-    mp4.FrameRate = 12;
-    set(vid,'DiskLogger',mp4);
-    vid.FrameGrabInterval = 1;  % distance between captured frames
-end
+
+%% PREPARE DEVICES
 
 if USE_NETWORK
     
@@ -246,7 +205,10 @@ if USE_NETWORK
     fopen(connection)
     
     %%% Test Connection
-    nTrials = WaitForInput(connection, 5);
+    dat_in = WaitForInput(connection, 5);
+    nTrials = dat_in(1);
+    SUBID = dat_in(2);
+    CONDITION = dat_in(3);
     if ~isnan(nTrials)
         DrawFormattedText(disp.ipaddresstest.w,['Test Sucessful!\n\nConnection to Client Computer Established.\n\nWill run paradigm with ' num2str(nTrials) ' trials.'],'center','center',255);
         Screen('CopyWindow',disp.ipaddresstest.w,window);
@@ -266,38 +228,71 @@ if USE_NETWORK
     % Send Signal to Computer 1 to proceed
     fwrite(connection,1)
     
-    % Set up Rating screen
-    % determine cursor parameters
-    cursor.xmin = disp.scale.rect(1) + 123;
-    cursor.width = 709;
-    cursor.xmax = cursor.xmin + cursor.width;
-    cursor.size = 8;
-    cursor.center = cursor.xmin + ceil(cursor.width/2);
-    cursor.y = disp.scale.rect(4) - 41;
-    cursor.labels = cursor.xmin + [10 42 120 249 379];
-    
-    % create array of random starting cursor positions
-    for s = 1:nTrials
-        ok = false;
-        while ~ok
-            if mod(s,2)
-                cursor.start(s) = round(rand(1)*0.4*cursor.width);
-            else
-                cursor.start(s) = round(rand(1)*-0.4*cursor.width);
-            end
-            ok = true;
-            for i = 1:numel(cursor.labels)
-                if abs((cursor.center+cursor.start(s))-(cursor.xmin+cursor.labels(i))) <= 5
-                    ok = false;
-                end
-            end
-        end
-    end
-    cursor.start = Shuffle(cursor.start);
+%     % Set up Rating screen
+%     % determine cursor parameters
+%     cursor.xmin = disp.scale.rect(1) + 123;
+%     cursor.width = 709;
+%     cursor.xmax = cursor.xmin + cursor.width;
+%     cursor.size = 8;
+%     cursor.center = cursor.xmin + ceil(cursor.width/2);
+%     cursor.y = disp.scale.rect(4) - 41;
+%     cursor.labels = cursor.xmin + [10 42 120 249 379];
+%     
+%     % create array of random starting cursor positions
+%     for s = 1:nTrials
+%         ok = false;
+%         while ~ok
+%             if mod(s,2)
+%                 cursor.start(s) = round(rand(1)*0.4*cursor.width);
+%             else
+%                 cursor.start(s) = round(rand(1)*-0.4*cursor.width);
+%             end
+%             ok = true;
+%             for i = 1:numel(cursor.labels)
+%                 if abs((cursor.center+cursor.start(s))-(cursor.xmin+cursor.labels(i))) <= 5
+%                     ok = false;
+%                 end
+%             end
+%         end
+%     end
+%     cursor.start = Shuffle(cursor.start);
     
 end
 
-%% Run Script
+if USE_VIDEO
+    
+    % Device info
+    devs = Screen('VideoCaptureDevices');
+    did = [];
+    for i=1:length(devs)
+        if devs(i).InputIndex==0
+            did = [did,devs(i).DeviceIndex];
+        end
+    end
+    % [builtinID, builtin_dev] = PsychGetCamIdForSpec('OSXAVFoundationVideoSource');
+    % [logitechID, log_dev] = PsychGetCamIdForSpec('OSXAVFoundationVideoSource');
+    
+    % Select Codec
+    % The good ones...
+    %codec = ':CodecType=avenc_mpeg4' % % MPEG-4 video + audio: Ok @ 640 x 480.
+    %codec = ':CodecType=x264enc Keyframe=1 Videobitrate=8192 AudioCodec=alawenc ::: AudioSource=pulsesrc ::: Muxer=qtmux'  % H264 video + MPEG-4 audio: Tut seshr gut @ 640 x 480
+    %codec = ':CodecType=VideoCodec=x264enc speed-preset=1 noise-reduction=100000 ::: AudioCodec=faac ::: Muxer=avimux'
+    % c = ':CodecType=DEFAULTencoder';
+    % c = ':CodecType=avenc_mpeg4';
+    c = ':CodecType=x264enc Keyframe=1: CodecSettings= Videoquality=1';
+    
+    % Settings for video recording
+    recFlag = 0 + 4 + 16 + 64; % [0,2]=sound off or on; [4] = disables internal processing; [16]=offload to separate processing thread; [64] = request timestamps in movie recording time instead of GetSecs() time:
+    
+    % Initialize capture
+    % Need to figure out how to change resolution and select webcam
+    % videoPtr =Screen('OpenVideoCapture', windowPtr [, deviceIndex][, roirectangle][, pixeldepth][, numbuffers][, allowfallback][, targetmoviename][, recordingflags][, captureEngineType][, bitdepth=8]);
+    grabber = Screen('OpenVideoCapture', window, did(2), [], [], [], 1, fullfile(fPath,'Data',['Video_' num2str(SUBID) '_Condition' num2str(CONDITION) '.avi' c]), recFlag, 3, 8);
+    WaitSecs('YieldSecs', 2); %insert delay to allow video to spool up
+    
+end
+
+%% Collect Inputs
 
 % Check if data file exists.  If so ask if we want to rerun, if not then quit and check subject ID.
 file_exist = exist(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CONDITION) '.csv']),'file');
@@ -325,6 +320,27 @@ if file_exist == 2
 end
 ListenChar(1); %Start listening to keyboard again.
 
+
+%% Text for slides
+
+% %Instructions
+switch CONDITION
+    case 0 %practice trials
+        instruct = 'We will now practice how to make ratings.\n\nYour partner will not be receiving any pain during practice.\n\nAfter each trial you will how bad you feel.\n\nPlease respond as honestly as you can.\n\nNobody else will be able to see your ratings.\n\n\nPress "spacebar" to continue.';
+    case 1,2,3 %Standard conditions
+        instruct = 'In this condition your partner will receive several trials of heat stimulation.\n\nAfter each trial you will rate how bad you feel.\n\nPlease respond as honestly as you can.\n\nNobody else will be able to see your ratings.\n\n\nPress "spacebar" to continue.';
+    case 4 %Experience sharing
+        instruct = 'In this condition your partner will receive several trials of heat stimulation.\n\nAfter each trial your partner will be able to share how they are feeling with you.\n\nAfter you have viewed the message, you will then rate how bad you feel.\n\nNobody else will be able to see these ratings.\n\nPress "spacebar" to continue.';
+    case 5,6
+        instruct = 'In this condition your partner will receive several trials of heat stimulation.\n\nYou can directly communicate with your partner during the pain stimulation.\n\nAfter each trial, you will then rate how bad you feel.\n\nNobody else will be able to see these ratings.\n\n\nPress "spacebar" to continue.';
+    case 7%Hand holding
+        instruct = 'In this condition your partner will receive several trials of heat stimulation.\n\nYou will be holding your partner''s hand during the stimulation.\n\nAfter each trial you will then rate how bad you feel.\n\nNobody else will be able to see these ratings.\n\n\nPress "spacebar" to continue.';
+    case 8 %Button press control
+        instruct = 'In this condition your partner will receive several trials of heat stimulation.\n\nAfter each trial you will be be instructed to rate a specific number.\n\nAfter you have selected the rating, you will then rate how bad you feel.\n\nNobody else will be able to see these ratings.\n\n\nPress "spacebar" to continue.';
+end
+
+%% Run Script
+
 %Initialize File with Header - need to get condition information from Computer 1
 if ~USE_NETWORK
     switch CONDITION
@@ -350,7 +366,8 @@ DrawFormattedText(window,'.','center','center',255);
 Screen('Flip',window);
 
 % put up instruction screen
-Screen('CopyWindow',disp.instruct.w,window);
+Screen('TextSize',window, 36);
+DrawFormattedText(window,instruct,'center','center',255);
 Screen('Flip',window);
 % wait for experimenter to press spacebar
 keycode(key.space) = 0;
@@ -376,11 +393,10 @@ timings = nan(1,8);
 
 %Start Video Recording
 if USE_VIDEO
-    StillRunning = isrunning(vid);
-    if ~StillRunning
-        start(vid);
-        tic %Record times
-    end
+    % Start capture -
+    %need to figure out how to deal with the initial pause at the beginning.
+    % [fps starttime] = Screen('StartVideoCapture', capturePtr [, captureRateFPS=25] [, dropframes=0] [, startAt]);
+    [fps t] = Screen('StartVideoCapture', grabber, 30, 0);
 end
 
 % put up fixation
@@ -418,14 +434,14 @@ while t <= nTrials
                     
                     timings(3) = GetSecs;
                     timings(4) = timings(3) - timings(2);
-                    
                     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                     
                 case 3 %Rating stage
                     
                     %%% RATING
                     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                               [timings(13) timings(14) timings(15) timings(16)] = GetRating(window, rect, screenNumber);
+                    txt = 'Please rate how bad you feel.\n\n Your partner will not see this rating.';
+                    [timings(13) timings(14) timings(15) timings(16)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','linear');
 
                     % Send trial data to Computer 1
                     % timings = [startfixation stimulation onset, stimulation offset, stimulation duration, rating onset, rating offset, rating duration, rating]
@@ -448,29 +464,25 @@ while t <= nTrials
                     
                     %%% Share Feeling
                     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                    Screen('CopyWindow',disp.stimulation.w,window);
-                    Screen('DrawTextures',window,disp.showfeeling.texture,[],disp.scale.rect);
-                    Screen('DrawTextures',window,disp.showfeeling.texture,[],disp.showfeeling.rect);
-                    Screen('DrawLine',window,[255 0 0],incoming_data(4),cursor.y-(ceil(.107*(cursor.x-cursor.xmin)))-5,cursor.x,cursor.y+10,5);
-%                     Screen('DrawLine',window,[255 0 0],cursor.x,cursor.y-(ceil(.107*(cursor.x-cursor.xmin)))-5,cursor.x,cursor.y+10,3);
-                    Screen('Flip',window);
+                        partner_rating = incoming_data(4);
+                        txt = 'This is how your partner wanted you to know that they are feeling.';
+                        [timings(13) timings(14) timings(15)] = ShowRating(partner_rating, FEEDBACKDUR, window, rect, screenNumber, 'txt', txt, 'type','linear');
+
+%                     Screen('CopyWindow',disp.stimulation.w,window);
+%                     Screen('DrawTextures',window,disp.showfeeling.texture,[],disp.scale.rect);
+%                     Screen('DrawTextures',window,disp.showfeeling.texture,[],disp.showfeeling.rect);
+%                     Screen('DrawLine',window,[255 0 0],incoming_data(4),cursor.y-(ceil(.107*(cursor.x-cursor.xmin)))-5,cursor.x,cursor.y+10,5);
+% %                     Screen('DrawLine',window,[255 0 0],cursor.x,cursor.y-(ceil(.107*(cursor.x-cursor.xmin)))-5,cursor.x,cursor.y+10,3);
+%                     Screen('Flip',window);
                     
                     % Get Rating Onset Time
                     timings(5) = GetSecs;
-                    
-                    % wait for participant to acknowledge response
-                    keycode(key.space) = 0;
-                    while keycode(key.space) == 0
-                        [timings(6) keycode delta] = KbWait;
-                    end
-                    timings(7) = timings(6) - timings(5);
-                    timings(8) =(cursor.x-cursor.xmin)/7;
-                    WaitSecs(.25);
+          
                     
                     % Send trial data to Computer 1
                     % timings = [startfixation stimulation onset, stimulation offset, stimulation duration, rating onset, rating offset, rating duration, rating]
-                    fwrite(connection, timings,'double')
-                    
+                    fwrite(connection, 222,'double')
+
                     % We need to write out data for computer 2 similar to
                     % computer 1 (look at other script for example)
                     
@@ -496,6 +508,28 @@ timing.endscreen = Screen('Flip',window);
 WaitSecs(3);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%%
+%% FINISH UP
 
-sca
+if USE_VIDEO
+    %Record times
+    %     video_offset = toc;
+    %         nFrame = vid.FramesAcquired;
+    %         frameRate = nFrame/video_offset;
+    
+    % Stop capture engine and recording:
+    Screen('StopVideoCapture', grabber);
+    telapsed = GetSecs - t;
+    
+    % Close engine and recorded movie file:
+    Screen('CloseVideoCapture', grabber);
+    
+    %Write out timing information
+    dlmwrite(fullfile(fPath,'Data',['Video_' num2str(SUBID) '_Condition' num2str(CONDITION) '_Timing.txt']),[telapsed,fps])
+end
+
+Screen('CloseAll');
+ShowCursor;
+Priority(0);
+sca;
+
+

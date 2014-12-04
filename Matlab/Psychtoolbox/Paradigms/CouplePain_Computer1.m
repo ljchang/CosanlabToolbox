@@ -43,14 +43,21 @@
 % 7) pain with partner holding hand
 % 8) pain with no partner in room and press button after each pain (message sharing control)
 
+%% Testing Settings
+
+ShowCursor;
+% [window rect] = Screen('OpenWindow', screenNumber, 0, [0 0 800 600]);
+% screenNumber = min(screens);
 
 %% GLOBAL PARAMETERS
 
-% clear all; close all; fclose all;
+clear all; close all; fclose all;
 % fPath = '~/Dropbox/RomanticCouples/CouplesParadigm';
 fPath = '/Users/lukechang/Dropbox/Doctor_Patient_Andrew/CouplesParadigm';
-cosanlabPath = '/Users/lukechang/Dropbox/Github/Cosanlabtoolbox/Matlab/Psychtoolbox';
-addpath(genpath(fullfile(cosanlabPath,'SupportFunctions')));
+cosanlabToolsPath = '/Users/lukechang/Dropbox/Github/Cosanlabtoolbox/Matlab/Psychtoolbox';
+% fPath = '/Users/andrewfrederickson/Dropbox/Doctor_Patient_Andrew/CouplesParadigm';
+% cosanlabToolsPath = '/Users/andrewfrederickson/Documents/CosanlabToolbox/Matlab/PsychToolbox';
+addpath(genpath(fullfile(cosanlabToolsPath,'SupportFunctions')));
 
 % random number generator reset
 rand('state',sum(100*clock));
@@ -58,8 +65,8 @@ rand('state',sum(100*clock));
 % Devices
 USE_THERMODE = 0;       % refers to thermode make 0 if not running on computer with thermode
 USE_BIOPAC = 0;         % refers to Biopac make 0 if not running on computer with biopac
-USE_VIDEO = 1;          % record video of Run
-USE_NETWORK = 0;        % refers to Biopac make 0 if not running on computer with biopac
+USE_VIDEO = 0;          % record video of Run
+USE_NETWORK = 1;        % refers to Biopac make 0 if not running on computer with biopac
 
 TRACKBALL_MULTIPLIER = 5;
 
@@ -105,10 +112,9 @@ screens = Screen('Screens');
 screenNumber = max(screens);
 
 % Prepare the screen
-[window rect] = Screen('OpenWindow', screenNumber, 0, [0 0 800 600]);
-% [window rect] = Screen('OpenWindow',screenNumber);
+[window rect] = Screen('OpenWindow',screenNumber);
 Screen('fillrect', window, screenNumber);
-HideCursor;
+% HideCursor;
 
 % Configure screen
 disp.screenWidth = rect(3);
@@ -152,24 +158,6 @@ DrawFormattedText(disp.nodevice.w,'DEVICE NOT SET UP','center','center',255);
 
 % clean up
 clear image texture
-
-%% Text for slides
-
-% %Instructions
-switch CONDITION
-    case 0 %practice trials
-        instruct = 'We will now practice how to make ratings.\n\nYou will not be receiving any pain during practice.\n\nAfter each trial you will rate the intensity of the pain.\n\nPlease respond as honestly as you can.\n\nNobody else will be able to see your ratings.\n\n\nPress "spacebar" to continue.';
-    case 1,2,3 %Standard conditions
-        instruct = 'In this condition you will receive several trials of heat stimulation.\n\nAfter each trial you will rate the intensity of the pain.\n\nPlease respond as honestly as you can.\n\nNobody else will be able to see your ratings.\n\n\nPress "spacebar" to continue.';
-    case 4 %Experience sharing
-        instruct = 'In this condition you will receive several trials of heat stimulation.\n\nAfter each trial you will be able to share how you are feeling with your partner.\n\nAfter you have sent your message, you will then rate the intensity of the pain.\n\nNobody else will be able to see these ratings.\n\nPress "spacebar" to continue.';
-    case 5,6
-        instruct = 'In this condition you will receive several trials of heat stimulation.\n\nYour partner can directly communicate with you during the pain stimulation.\n\nAfter each trial, you will then rate the intensity of the pain.\n\nNobody else will be able to see these ratings.\n\n\nPress "spacebar" to continue.';
-    case 7%Hand holding
-        instruct = 'In this condition you will receive several trials of heat stimulation.\n\nYour partner will be holding your hand during the stimulation.\n\nAfter each trial you will then rate the intensity of the pain.\n\nNobody else will be able to see these ratings.\n\n\nPress "spacebar" to continue.';
-    case 8 %Button press control
-        instruct = 'In this condition you will receive several trials of heat stimulation.\n\nAfter each trial you will be be instructed to rate a specific number.\n\nAfter you have selected the rating, you will then rate the intensity of the pain.\n\nNobody else will be able to see these ratings.\n\n\nPress "spacebar" to continue.';
-end
 
 %% PREPARE FOR INPUT
 % Enable unified mode of KbName, so KbName accepts identical key names on all operating systems:
@@ -271,6 +259,7 @@ if file_exist == 2
 end
 ListenChar(1); %Start listening to keyboard again.
 
+
 %% PREPARE DEVICES
 
 if USE_THERMODE
@@ -343,18 +332,21 @@ if USE_NETWORK
     if file_exist == 2
         fid = fopen(fullfile(fPath,'ipaddress.txt'),'rt');
         tmp = textscan(fid,'%c','Delimiter','\n');
-        ipaddress = ipaddress{1};
+        ipaddress = tmp{1}';
         fclose(fid);
-        iptext = ['Set up network connection with laptop. Is this the correct IP Address from the laptop server? ' ipaddress '\n\n1 = "YES"\n\n2="NO"'];
+        iptext = ['Set up network connection with laptop.\nIs this the correct IP Address from the laptop server? ' ipaddress '\n\n1 = "YES"\n\n2="NO"'];
+        Screen('TextSize',window, 40);
+        DrawFormattedText(window,iptext,'center','center',255);
+        Screen('Flip',window);
         keycode(key.one) = 0;
         keycode(key.two) = 0;
-        while keycode(key.one) && keycode(key.two) == 0
+        while keycode(key.one) == 0 && keycode(key.two) == 0
             [presstime keycode delta] = KbWait;
         end
         if keycode(key.one)
-            return;
+            %             return;
         else %IP address is incorrect
-            iptext = ['Set up network connection with laptop. Please input the IP address from the laptop server (e.g. ' ipaddress ').'];
+            iptext = ['Set up network connection with laptop.\nPlease input the IP address from the laptop server (e.g. ' ipaddress ').'];
             ipaddress = GetEchoString(window, iptext, round(disp.screenWidth*.25), disp.ycenter, [255, 255, 255], [0, 0, 0],[]);
         end
     else %no ipaddress file exists.
@@ -374,7 +366,7 @@ if USE_NETWORK
     
     % Test Connection
     WaitSecs(.1)
-    fwrite(connection, nTrials);
+    fwrite(connection, [nTrials, SUBID + 100, CONDITION]);
     
     % Wait for signal from Computer 2 before proceeding
     testcomplete = 0;
@@ -382,6 +374,26 @@ if USE_NETWORK
         testcomplete = WaitForInput(connection,.5);
     end
 end
+
+
+%% Text for slides
+
+% %Instructions
+switch CONDITION
+    case 0 %practice trials
+        instruct = 'We will now practice how to make ratings.\n\nYou will not be receiving any pain during practice.\n\nAfter each trial you will rate the intensity of the pain.\n\nPlease respond as honestly as you can.\n\nNobody else will be able to see your ratings.\n\n\nPress "spacebar" to continue.';
+    case 1,2,3 %Standard conditions
+        instruct = 'In this condition you will receive several trials of heat stimulation.\n\nAfter each trial you will rate the intensity of the pain.\n\nPlease respond as honestly as you can.\n\nNobody else will be able to see your ratings.\n\n\nPress "spacebar" to continue.';
+    case 4 %Experience sharing
+        instruct = 'In this condition you will receive several trials of heat stimulation.\n\nAfter each trial you will be able to share how you are feeling with your partner.\n\nAfter you have sent your message, you will then rate the intensity of the pain.\n\nNobody else will be able to see these ratings.\n\nPress "spacebar" to continue.';
+    case 5,6
+        instruct = 'In this condition you will receive several trials of heat stimulation.\n\nYour partner can directly communicate with you during the pain stimulation.\n\nAfter each trial, you will then rate the intensity of the pain.\n\nNobody else will be able to see these ratings.\n\n\nPress "spacebar" to continue.';
+    case 7%Hand holding
+        instruct = 'In this condition you will receive several trials of heat stimulation.\n\nYour partner will be holding your hand during the stimulation.\n\nAfter each trial you will then rate the intensity of the pain.\n\nNobody else will be able to see these ratings.\n\n\nPress "spacebar" to continue.';
+    case 8 %Button press control
+        instruct = 'In this condition you will receive several trials of heat stimulation.\n\nAfter each trial you will be be instructed to rate a specific number.\n\nAfter you have selected the rating, you will then rate the intensity of the pain.\n\nNobody else will be able to see these ratings.\n\n\nPress "spacebar" to continue.';
+end
+
 
 %% Run Script
 
@@ -490,7 +502,8 @@ switch CONDITION
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if USE_NETWORK; fwrite(connection,[trial,CONDITION,3]);  end
             
-            [timings(13) timings(14) timings(15) timings(16)] = GetRating(window, rect, screenNumber);
+            txt = 'Please rate the intensity of your pain.\n\n Your partner will not see this rating.';
+            [timings(13) timings(14) timings(15) timings(16)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','linear');
             
             if USE_NETWORK % Wait for signal from Computer 2 before proceeding
                 computer2_timings = WaitForInput(connection, 1);
@@ -559,7 +572,8 @@ switch CONDITION
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if USE_NETWORK; fwrite(connection,[trial,CONDITION,3]);  end
             
-            [timings(13) timings(14) timings(15) timings(16)] = GetRating(window, rect, screenNumber);
+            txt = 'Please rate the intensity of your pain.\n\n Your partner will not see this rating.';
+            [timings(13) timings(14) timings(15) timings(16)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','linear');
             
             if USE_NETWORK % Wait for signal from Computer 2 before proceeding
                 computer2_timings = WaitForInput(connection, 1);
@@ -633,14 +647,17 @@ switch CONDITION
             if USE_NETWORK; fwrite(connection,[trial,CONDITION,4]);  end
             
             txt = 'Let your partner know how you are feeling.\n\nThis is independent of your pain rating.';
-            [timings(13) timings(14) timings(15) timings(16)] = GetRating(window, rect, screenNumber, 'txt',txt);
+            [timings(13) timings(14) timings(15) timings(16)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','linear');
             
             if USE_NETWORK % Wait for signal from Computer 2 before proceeding
                 %Send Rating to Partner
-                fwrite(connection,[trial,CONDITION,4,timings(19)])
+                fwrite(connection,[trial,CONDITION,4,timings(16)])
                 
                 %Wait to proceed until partner has acknowledged feeling
-                computer2_timings = WaitForInput(connection, 1);
+                computer2_timings = nan;
+                while computer2_timings ~= 222
+                    computer2_timings = WaitForInput(connection, 1);
+                end
             end
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
@@ -649,7 +666,7 @@ switch CONDITION
             if USE_NETWORK; fwrite(connection,[trial,CONDITION,3]);  end
             
             txt = 'Please rate the intensity of your pain.\n\n Your partner will not see this rating.';
-            [timings(17) timings(18) timings(19) timings(20)] = GetRating(window, rect, screenNumber, 'txt',txt);
+            [timings(17) timings(18) timings(19) timings(20)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','linear');
             
             if USE_NETWORK % Wait for signal from Computer 2 before proceeding
                 computer2_timings = WaitForInput(connection, 1);
@@ -727,7 +744,7 @@ switch CONDITION
             
             randnum = num2str(round(rand*100));            % Generate random target value
             txt = ['Please set the rating to approximately ' num2str(randnum)];
-            [timings(13) timings(14) timings(15) timings(16)] = GetRating(window, rect, screenNumber, 'txt',txt);
+            [timings(13) timings(14) timings(15) timings(16)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','linear');
             
             if USE_NETWORK % Wait for signal from Computer 2 before proceeding
                 %Send Rating to Partner
@@ -744,7 +761,7 @@ switch CONDITION
             if USE_NETWORK; fwrite(connection,[trial,CONDITION,3]);  end
             
             txt = 'Please rate the intensity of your pain.\n\n Your partner will not see this rating.';
-            [timings(17) timings(18) timings(19) timings(20)] = GetRating(window, rect, screenNumber, 'txt',txt);
+            [timings(17) timings(18) timings(19) timings(20)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','linear');
             
             if USE_NETWORK % Wait for signal from Computer 2 before proceeding
                 computer2_timings = WaitForInput(connection, 1);
@@ -784,7 +801,7 @@ WaitSecs(2);
 
 if USE_VIDEO
     %Record times
-%     video_offset = toc;
+    %     video_offset = toc;
     %         nFrame = vid.FramesAcquired;
     %         frameRate = nFrame/video_offset;
     

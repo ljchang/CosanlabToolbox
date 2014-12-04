@@ -148,7 +148,7 @@ while getRating
     
     % Create cursor
     Screen('DrawTextures',window,disp.scale.texture,[],disp.scale.rect);
-    if img_type == 'line'
+    if strcmp(img_type,'line')
                 Screen('DrawLine',window,[255 0 0],cursor.x,cursor.y-30, cursor.x, cursor.y + 10,4);
     else %change size
         Screen('DrawLine',window,[255 0 0],cursor.x,cursor.y-(ceil(.107*(cursor.x-cursor.xmin)))-5,cursor.x,cursor.y+10,3);
