@@ -452,13 +452,34 @@ classdef design_matrix < handle
             obj.varname = [obj.varname, filtname];
         end
         
-        function [B,BINT,R,RINT,STATS] = regress(Y, obj)
-            % [B,BINT,R,RINT,STATS] = regress(Y, obj)
+        function stats = regress(obj, Y, varargin)
+            % [B,BINT,R,RINT,STATS] = regress(obj, Y)
             %
             % Regress design matrix on vector Y
             % Uses matlab's regress function
+            %
+            % optional inputs
+            % -------------------------------------------------------------------
+            % 'robust'           : use robust regression
             
-            [B,BINT,R,RINT,STATS] = regress(Y, obj.dat);
+            % Defaults
+            doRobust = 0;
+            for i = 1:length(varargin)
+                if strcmpi(varargin(i),'robust')
+                    doRobust = 1;
+                    find_robust = exist('robustfit');
+                    if find_robust ~= 2
+                        error('Make sure robustfit is on your path, requires the stats toolbox')
+                    end
+                    varargin(i) = [];
+                end
+            end
+            
+            if ~doRobust
+                [stats.B, stats.BINT, stats.R, stats.RINT, stats.STATS] = regress(Y, obj.dat);
+            else
+                [stats.B, stats.STATS] = robustfit(obj.dat, Y);
+            end
         end
         
         function obj = onsettimes(obj, onset, names, tr, timing )
