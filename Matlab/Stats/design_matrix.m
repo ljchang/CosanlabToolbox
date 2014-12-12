@@ -478,7 +478,7 @@ classdef design_matrix < handle
             if ~doRobust
                 [stats.B, stats.BINT, stats.R, stats.RINT, stats.STATS] = regress(Y, obj.dat);
             else
-                [stats.B, stats.STATS] = robustfit(obj.dat, Y);
+                [stats.B, stats.STATS] = robustfit(obj.dat, Y,[],[],'off');
             end
         end
         
