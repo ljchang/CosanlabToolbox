@@ -7,7 +7,7 @@
 %           https://github.com/ljchang/CosanlabToolbox
 %           http://gstreamer.freedesktop.org/
 %
-% Developed by Luke Chang, Brianna Robustelli, Mark Whisman, Tor Wager
+% Developed by Luke Chang, Briana Robustelli, Mark Whisman, Tor Wager
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (c) 2014 Luke Chang
@@ -61,7 +61,7 @@ screens = Screen('Screens');
 clear all; close all; fclose all;
 % fPath = '/Users/lukechang/Dropbox/RomanticCouples/CouplesParadigm';
 % cosanlabToolsPath = '/Users/lukechang/Dropbox/Github/Cosanlabtoolbox/Matlab/Psychtoolbox';
-fPath = '/Users/ljchang/Dropbox/RomanticCouples/CouplesParadigm';
+fPath = '/Users/lukechang/Dropbox/Doctor_Patient_Andrew/CouplesParadigm';
 cosanlabToolsPath = '/Users/ljchang/Dropbox/Github/Cosanlabtoolbox/Matlab/Psychtoolbox';
 addpath(genpath(fullfile(cosanlabToolsPath,'SupportFunctions')));
 
@@ -89,6 +89,8 @@ EXPERIMENTER = 1;
 
 %% PREPARE DISPLAY
 % % will break with error message if Screen() can't run
+
+Screen('Preference', 'SkipSyncTests', 0);
 AssertOpenGL;
 
 % Here we call some default settings for setting up Psychtoolbox
@@ -101,7 +103,8 @@ screenNumber = max(screens);
 
 
 % Prepare the screen
-[window rect] = Screen('OpenWindow',screenNumber);
+% [window rect] = Screen('OpenWindow',screenNumber);
+[window rect] = Screen('OpenWindow', screenNumber, 0, [0 0 1200 700]);
 Screen('fillrect', window, screenNumber);
 % HideCursor;
 
@@ -124,32 +127,6 @@ halfwidth = ceil(halfheight/.75);
 disp.instruct.rect = [[disp.xcenter disp.ycenter]-[halfwidth halfheight] [disp.xcenter disp.ycenter]+[halfwidth halfheight]];
 disp.instruct.w = Screen('OpenOffscreenWindow',screenNumber);
 Screen('FillRect',disp.instruct.w,screenNumber); % paint black
-
-% % determine cursor parameters
-% cursor.xmin = disp.scale.rect(1) + 123;
-% cursor.width = 709;
-% cursor.xmax = cursor.xmin + cursor.width;
-% cursor.size = 8;
-% cursor.center = cursor.xmin + ceil(cursor.width/2);
-% cursor.y = disp.scale.rect(4) - 41;
-% cursor.labels = cursor.xmin + [10 42 120 249 379];
-
-
-% Add text
-% [newX,newY]=Screen('DrawText', disp.share, text [,x] [,y] [,color] [,backgroundColor] [,yPositionIsBaseline] [,swapTextDirection]);
-% [newX,newY]=Screen('DrawText', disp.share, );
-% Screen('TextSize',disp.fixation.w,60);
-% DrawFormattedText(disp.share.w,'This is how your partner wanted you to know how they are feeling.  Press space to acknowledge message and proceed.','top','center',255);
-
-% 
-% % determine cursor parameters
-% cursor.xmin = disp.showfeeling.rect(1) + 123;
-% cursor.width = 709;
-% cursor.xmax = cursor.xmin + cursor.width;
-% cursor.size = 8;
-% cursor.center = cursor.xmin + ceil(cursor.width/2);
-% cursor.y = disp.showfeeling.rect(4) - 41;
-% cursor.labels = cursor.xmin + [10 42 120 249 379];
 
 % Make a base Rect of 200 by 200 pixels
 baseMark = [0 0 20 20];
@@ -205,7 +182,7 @@ if USE_NETWORK
     fopen(connection)
     
     %%% Test Connection
-    dat_in = WaitForInput(connection, 5);
+    dat_in = WaitForInput(connection, [1,3], 5);
     nTrials = dat_in(1);
     SUBID = dat_in(2);
     CONDITION = dat_in(3);
@@ -226,37 +203,7 @@ if USE_NETWORK
     end
     
     % Send Signal to Computer 1 to proceed
-    fwrite(connection,1)
-    
-%     % Set up Rating screen
-%     % determine cursor parameters
-%     cursor.xmin = disp.scale.rect(1) + 123;
-%     cursor.width = 709;
-%     cursor.xmax = cursor.xmin + cursor.width;
-%     cursor.size = 8;
-%     cursor.center = cursor.xmin + ceil(cursor.width/2);
-%     cursor.y = disp.scale.rect(4) - 41;
-%     cursor.labels = cursor.xmin + [10 42 120 249 379];
-%     
-%     % create array of random starting cursor positions
-%     for s = 1:nTrials
-%         ok = false;
-%         while ~ok
-%             if mod(s,2)
-%                 cursor.start(s) = round(rand(1)*0.4*cursor.width);
-%             else
-%                 cursor.start(s) = round(rand(1)*-0.4*cursor.width);
-%             end
-%             ok = true;
-%             for i = 1:numel(cursor.labels)
-%                 if abs((cursor.center+cursor.start(s))-(cursor.xmin+cursor.labels(i))) <= 5
-%                     ok = false;
-%                 end
-%             end
-%         end
-%     end
-%     cursor.start = Shuffle(cursor.start);
-    
+    fwrite(connection,1,'double')
 end
 
 if USE_VIDEO
@@ -273,12 +220,6 @@ if USE_VIDEO
     % [logitechID, log_dev] = PsychGetCamIdForSpec('OSXAVFoundationVideoSource');
     
     % Select Codec
-    % The good ones...
-    %codec = ':CodecType=avenc_mpeg4' % % MPEG-4 video + audio: Ok @ 640 x 480.
-    %codec = ':CodecType=x264enc Keyframe=1 Videobitrate=8192 AudioCodec=alawenc ::: AudioSource=pulsesrc ::: Muxer=qtmux'  % H264 video + MPEG-4 audio: Tut seshr gut @ 640 x 480
-    %codec = ':CodecType=VideoCodec=x264enc speed-preset=1 noise-reduction=100000 ::: AudioCodec=faac ::: Muxer=avimux'
-    % c = ':CodecType=DEFAULTencoder';
-    % c = ':CodecType=avenc_mpeg4';
     c = ':CodecType=x264enc Keyframe=1: CodecSettings= Videoquality=1';
     
     % Settings for video recording
@@ -299,7 +240,7 @@ file_exist = exist(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CO
 ListenChar(2); %Stop listening to keyboard
 if file_exist == 2
     exist_text = ['WARNING!\n\nA data file exists for Subject - ' num2str(SUBID) ' Condition - ' num2str(CONDITION) '\nPress ''q'' to quit or ''p'' to proceed'];
-    Screen('TextSize',window, 50);
+    Screen('TextSize',window, 36);
     DrawFormattedText(window,exist_text,'center','center',255);
     Screen('Flip',window);
     keycode(key.q) = 0;
@@ -327,11 +268,11 @@ ListenChar(1); %Start listening to keyboard again.
 switch CONDITION
     case 0 %practice trials
         instruct = 'We will now practice how to make ratings.\n\nYour partner will not be receiving any pain during practice.\n\nAfter each trial you will how bad you feel.\n\nPlease respond as honestly as you can.\n\nNobody else will be able to see your ratings.\n\n\nPress "spacebar" to continue.';
-    case 1,2,3 %Standard conditions
+    case {1,2,3} %Standard conditions
         instruct = 'In this condition your partner will receive several trials of heat stimulation.\n\nAfter each trial you will rate how bad you feel.\n\nPlease respond as honestly as you can.\n\nNobody else will be able to see your ratings.\n\n\nPress "spacebar" to continue.';
     case 4 %Experience sharing
         instruct = 'In this condition your partner will receive several trials of heat stimulation.\n\nAfter each trial your partner will be able to share how they are feeling with you.\n\nAfter you have viewed the message, you will then rate how bad you feel.\n\nNobody else will be able to see these ratings.\n\nPress "spacebar" to continue.';
-    case 5,6
+    case {5,6}
         instruct = 'In this condition your partner will receive several trials of heat stimulation.\n\nYou can directly communicate with your partner during the pain stimulation.\n\nAfter each trial, you will then rate how bad you feel.\n\nNobody else will be able to see these ratings.\n\n\nPress "spacebar" to continue.';
     case 7%Hand holding
         instruct = 'In this condition your partner will receive several trials of heat stimulation.\n\nYou will be holding your partner''s hand during the stimulation.\n\nAfter each trial you will then rate how bad you feel.\n\nNobody else will be able to see these ratings.\n\n\nPress "spacebar" to continue.';
@@ -342,23 +283,15 @@ end
 %% Run Script
 
 %Initialize File with Header - need to get condition information from Computer 1
-if ~USE_NETWORK
-    switch CONDITION
-        case 1,2,3,7
-            hdr = 'Subject,Condition,Trial,Temperature,StimulationSite,ExperimentStart,AnticipationOnset,AnticipationOffset,AnticipationDur,StimulationOnset,StimulusOffset,StimulationDur,RatingOnset,RatingOffset,RatingDur,Rating,FixationOnset,FixationOffset,FixationDur';
-            timings = nan(1,19);
-        case 4
-            hdr = 'Subject,Condition,Trial,Temperature,StimulationSite,ExperimentStart,AnticipationOnset,AnticipationOffset,AnticipationDur,StimulationOnset,StimulusOffset,StimulationDur,RatingOnset,RatingOffset,RatingDur,Rating,FixationOnset,FixationOffset,FixationDur';
-            timings = nan(1,23);
-        case 8
-            hdr = 'Subject,Condition,Trial,Temperature,StimulationSite,ExperimentStart,AnticipationOnset,AnticipationOffset,AnticipationDur,StimulationOnset,StimulusOffset,StimulationDur,ShareOnset,ShareOffset,ShareDur,ShareRating,,RatingOnset,RatingOffset,RatingDur,Rating,FixationOnset,FixationOffset,FixationDur,RandomNumber';
-            timings = nan(1,24);
-        case 5,6
-    end
-else
-    hdr = 'Subject,Condition,Trial,Temperature,StimulationSite,ExperimentStart,CueOnset,CueOffset,CueDur,AnticipationOnset,AnticipationOffset,AnticipationDur,StimulationOnset,StimulusOffset,StimulationDur,RatingOnset,RatingOffset,RatingDur,Rating,FixationOnset,FixationOffset,FixationDur,P2StartFixation,P2StimulationOnset, P2StimulationOffset,P2StimulationDuration,P2RatingOnset,P2RatingOffset,P2RatingDuration,P2Rating';
-    timings = nan(1,30);
+switch CONDITION
+    case {1,2,3,7}
+        hdr = 'Subject,Condition,Trial,ExperimentStart,StimulationOnset,StimulusOffset,StimulationDur,RatingOnset,RatingOffset,RatingDur,Rating';
+        timings = nan(1,11);
+    case {4,8}
+        hdr = 'Subject,Condition,Trial,ExperimentStart,StimulationOnset,StimulusOffset,StimulationDur,RatingOnset,RatingOffset,RatingDur,Rating,PartnerRating,PartnerRatingOnset,PartnerRatingOffset,PartnerRatingDur';
+        timings = nan(1,15);
 end
+dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CONDITION) '.csv']), hdr,'')
 
 % initialize
 Screen('TextSize',window,72);
@@ -387,9 +320,8 @@ Screen('Flip',window);
 % Wait for start signal from Computer 1
 start = nan;
 while start ~= 111
-    start = WaitForInput(connection, 10);
+    start = WaitForInput(connection, [1,1], 10);
 end
-timings = nan(1,8);
 
 %Start Video Recording
 if USE_VIDEO
@@ -409,89 +341,71 @@ t = 1;
 while t <= nTrials
     
     % Wait for incoming data from computer 1;
-    incoming_data = WaitForInput(connection, 2);
+    incoming_data = WaitForInput(connection, [1,4], 2);
     trial = incoming_data(1);
     condition = incoming_data(2);
     trial_part = incoming_data(3);
     
-    switch condition
-        case 1,2,3,4
-            switch trial_part
-                case 2 %Stimulation
-                    
-                    %%% STIM
-                    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                    Screen('CopyWindow',disp.stimulation.w,window);
-                    %                     Screen('TextSize',window,72);
-                    %                     DrawFormattedText(window,num2str(STIMULI(trial)),'center',disp.ycenter+200,255);
-                    timings(2) = Screen('Flip',window);
-                    
-                    % Wait for stop signal from Computer 1
-                    stop = nan;
-                    while stop ~= 222
-                        stop = WaitForInput(connection, 2);
-                    end
-                    
-                    timings(3) = GetSecs;
-                    timings(4) = timings(3) - timings(2);
-                    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                    
-                case 3 %Rating stage
-                    
-                    %%% RATING
-                    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                    txt = 'Please rate how bad you feel.\n\n Your partner will not see this rating.';
-                    [timings(13) timings(14) timings(15) timings(16)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','linear');
-
-                    % Send trial data to Computer 1
-                    % timings = [startfixation stimulation onset, stimulation offset, stimulation duration, rating onset, rating offset, rating duration, rating]
-                    fwrite(connection, timings,'double')
-                    
-                    % We need to write out data for computer 2 similar to
-                    % computer 1 (look at other script for example)
-                    
-                    % only send rating information to computer 1, or figure
-                    % out how to deal with max numbers greater than 255.
-                    % Also it would be nice to have decimal information.
-                  
-                    
-                    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                    
-                    %%% End of Trial
-                    t = t+1; %Update trial count for main while loop
-                    
-                case 4 %Share how partner is feeling
-                    
-                    %%% Share Feeling
-                    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                        partner_rating = incoming_data(4);
-                        txt = 'This is how your partner wanted you to know that they are feeling.';
-                        [timings(13) timings(14) timings(15)] = ShowRating(partner_rating, FEEDBACKDUR, window, rect, screenNumber, 'txt', txt, 'type','linear');
-
-%                     Screen('CopyWindow',disp.stimulation.w,window);
-%                     Screen('DrawTextures',window,disp.showfeeling.texture,[],disp.scale.rect);
-%                     Screen('DrawTextures',window,disp.showfeeling.texture,[],disp.showfeeling.rect);
-%                     Screen('DrawLine',window,[255 0 0],incoming_data(4),cursor.y-(ceil(.107*(cursor.x-cursor.xmin)))-5,cursor.x,cursor.y+10,5);
-% %                     Screen('DrawLine',window,[255 0 0],cursor.x,cursor.y-(ceil(.107*(cursor.x-cursor.xmin)))-5,cursor.x,cursor.y+10,3);
-%                     Screen('Flip',window);
-                    
-                    % Get Rating Onset Time
-                    timings(5) = GetSecs;
-          
-                    
-                    % Send trial data to Computer 1
-                    % timings = [startfixation stimulation onset, stimulation offset, stimulation duration, rating onset, rating offset, rating duration, rating]
-                    fwrite(connection, 222,'double')
-
-                    % We need to write out data for computer 2 similar to
-                    % computer 1 (look at other script for example)
-                    
-                    % only send rating information to computer 1, or figure
-                    % out how to deal with max numbers greater than 255.
-                    % Also it would be nice to have decimal information.
-                    
+    % Write to file
+    timings(1) = SUBID;
+    timings(2) = condition;
+    timings(3) = trial;
+    timings(4) = startfix;
+    
+    switch trial_part
+        case 2 %Stimulation
+            
+            %%% STIM
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            Screen('CopyWindow',disp.stimulation.w,window);
+            timings(5) = Screen('Flip',window);
+            
+            % Wait for stop signal from Computer 1
+            stop = nan;
+            while stop ~= 222
+                stop = WaitForInput(connection, [1,1], 2);
             end
+            
+            timings(6) = GetSecs;
+            timings(7) = timings(6) - timings(5);
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+        case 3 %Rating stage
+            
+            %%% RATING
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            txt = 'Please rate how bad you feel.\n\n Your partner will not see this rating.';
+            [timings(8) timings(9) timings(10) timings(11)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','A Lot'});
+            
+            % Send trial data to Computer 1
+            fwrite(connection, 222,'double')
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+            %%% End of Trial
+            t = t+1; %Update trial count for main while loop
+            
+            % Append data to file after every trial
+            dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CONDITION) '.csv']), timings, 'delimiter',',','-append','precision',10)
+            
+        case 4 %Share how partner is feeling :: Only for condition 4
+            
+            %%% Share Feeling
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            timings(12) = incoming_data(4);
+            txt = 'This is how your partner wanted you to know that they are feeling.';
+            [timings(13) timings(14) timings(15)] = ShowRating(timings(12), FEEDBACKDUR, window, rect, screenNumber, 'txt', txt, 'type','line','anchor',{'None','A Lot'});
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+        case 8 %Show Button Press :: Only for condition 8
+            
+            %%% Show Button press
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            timings(12) = incoming_data(4);
+            txt = 'This is the rating your partner was instructed to press.';
+            [timings(13) timings(14) timings(15)] = ShowRating(timings(12), FEEDBACKDUR, window, rect, screenNumber, 'txt', txt, 'type','line','anchor',{'None','A Lot'});
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     end
+    
     %%% Fixation
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     Screen('CopyWindow',disp.fixation.w,window);

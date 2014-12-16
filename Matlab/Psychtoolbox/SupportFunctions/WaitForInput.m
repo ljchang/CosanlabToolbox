@@ -1,15 +1,16 @@
-function output_data = WaitForInput(connection, nMin)
+function output_data = WaitForInput(connection, msgSize, nMin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-% output_data = WaitForInput(connection, nMin)
+% output_data = WaitForInput(connection, msgSize, nMin)
 %
-% Wait for incoming data for some amount of time
+% Wait for incoming double data for some amount of time of specified size
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Input:
 %
 % connection                tcip/ip connection object
 % nMin                      number of minutes to wait
+% msgSize                   size of message (e.g., [m,n] matrix)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Output:
 %
@@ -38,9 +39,9 @@ function output_data = WaitForInput(connection, nMin)
 
 finalTime = datenum(clock + [0, 0, 0, 0, nMin, 0]);
 output_data = nan; %Set to NaN if timeout
-while datenum(clock) < finalTime
+while datenum(clock) < finalTime 
     try
-        output_data = fread(connection, connection.BytesAvailable);
+        output_data = fread(connection, msgSize,'double');
         if ~isempty(output_data)
             break
         end

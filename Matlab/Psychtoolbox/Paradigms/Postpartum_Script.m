@@ -35,15 +35,17 @@
 %% GLOBAL PARAMETERS
 
 % clear all; close all; fclose all;
-% fPath = '~/Dropbox/RomanticCouples/CouplesParadigm';
 fPath = '/Users/lukechang/Dropbox/Postpartum/Paradigm';
-addpath(genpath(fullfile(fPath,'SupportFunctions')));
+cosanlabToolsPath = '/Users/lukechang/Dropbox/Github/Cosanlabtoolbox/Matlab/Psychtoolbox';
+% fPath = '/Users/10cam/Dropbox/Postpartum/Paradigm';
+% cosanlabToolsPath = '/Users/10cam/Documents/Cosanlabtoolbox/Matlab/Psychtoolbox';
+addpath(genpath(fullfile(cosanlabToolsPath,'SupportFunctions')));
 
 % random number generator reset
 rand('state',sum(100*clock));
 
 % Settings
-USE_VIDEO = 1;          % record video of Run
+USE_VIDEO = 0;          % record video of Run
 TRACKBALL_MULTIPLIER = 5;
 
 
@@ -57,8 +59,8 @@ screens = Screen('Screens');
 screenNumber = max(screens);
 
 % Prepare the screen
-% [window rect] = Screen('OpenWindow', screenNumber, 0, [0 0 800 600]);
-[window rect] = Screen('OpenWindow',screenNumber);
+[window rect] = Screen('OpenWindow', screenNumber, 0, [0 0 1200 900]);
+% [window rect] = Screen('OpenWindow',screenNumber);
 Screen('fillrect', window, screenNumber);
 HideCursor;
 
@@ -104,7 +106,7 @@ exp = q;
 % exp{1} = 'How much do you think most baby''s eat?';
 
 % Emotions
-emotions = {'guilt','anger', 'fear', 'happiness', 'pride', 'sadness', 'shame', 'surprise'};
+emotions = {'guilt','anger', 'happiness', 'pride', 'sadness', 'shame', 'surprise'};
 
 % Create random signs
 select_sign = cellstr([repmat('positive',round(length(q)/2),1);repmat('negative',round(length(q)/2),1)]);
@@ -116,8 +118,8 @@ STARTFIX = 1;
 FIXDUR = geometric_progression(1, length(q) * (length(emotions) + 1), 3); % Create a Random Vector of ISI Times
 FIXDUR = FIXDUR(randperm(length(FIXDUR)));
 ENDSCREENDUR = 2;
-feedbackDur = 2;
-
+feedbackDur = 4;
+questionDur = 2;
 
 %% Text for slides
 
@@ -196,12 +198,8 @@ if USE_VIDEO
             did = [did,devs(i).DeviceIndex];
         end
     end
-    % [builtinID, builtin_dev] = PsychGetCamIdForSpec('OSXAVFoundationVideoSource');
-    % [logitechID, log_dev] = PsychGetCamIdForSpec('OSXAVFoundationVideoSource');
     
     % Select Codec
-    % c = ':CodecType=DEFAULTencoder';
-    % c = ':CodecType=avenc_mpeg4';
     c = ':CodecType=x264enc Keyframe=1: CodecSettings= Videoquality=1';
     
     % Settings for video recording
@@ -284,15 +282,15 @@ for trial = 1:length(q)
     
     %%% Question
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    [timings(8) timings(9) timings(10) timings(11)] = GetRating(window, rect, screenNumber, 'txt', q{trial}, 'type','line');
+    [timings(8) timings(9) timings(10) timings(11)] = GetRating(window, rect, screenNumber, 'txt', q{trial}, 'type','line','anchor', {'None','A Lot'});
+    WaitSecs(questionDur);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     
     %%% Feedback
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     timings(12) = randomSample(timings(11),20,'cutoff',[0,1],'sign',select_sign(trial)); %Social Norm
-    %     [timings(11), social_norm]
-    [timings(13) timings(14) timings(15)] = ShowRating([timings(11), timings(12)], feedbackDur, window, rect, screenNumber, 'txt', q{trial}, 'type','line');
+    [timings(13) timings(14) timings(15)] = ShowRating([timings(11), timings(12)], feedbackDur, window, rect, screenNumber, 'txt', q{trial}, 'type','line', 'anchor', {'None','A Lot'});
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     
@@ -307,8 +305,12 @@ for trial = 1:length(q)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     lastt = 15;
     for e = 1:length(emotions)
-        [timings(lastt + 1) timings(lastt + 2) timings(lastt + 3) timings(lastt + 4)] = GetRating(window, rect, screenNumber, 'txt',['How much ' emotions{e} ' do you feel?'],'type','line');
+        [timings(lastt + 1) timings(lastt + 2) timings(lastt + 3) timings(lastt + 4)] = GetRating(window, rect, screenNumber, 'txt',['How much ' emotions{e} ' do you feel?'],'type','line', 'anchor', {'None','A Lot'});
         lastt = lastt + 4;
+        
+        % Wait for 1 second in between each rating
+        Screen('Flip',window);
+        WaitSecs(1)
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
