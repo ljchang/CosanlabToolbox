@@ -25,7 +25,6 @@ function [RatingOnset RatingOffset RatingDuration Rating] = GetRating(window, re
 %                           line.
 % 'anchor'                  followed by cell array of low and high rating
 %                           anchors (e.g., {'None','A lot'}
-%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Output:
 %
@@ -58,7 +57,6 @@ function [RatingOnset RatingOffset RatingDuration Rating] = GetRating(window, re
 
 % Defaults
 show_text = 0;
-show_anchor = 0;
 
 % Parse Inputs
 ip = inputParser;
@@ -66,24 +64,29 @@ ip.CaseSensitive = false;
 ip.addRequired('window',@isnumeric);
 ip.addRequired('rect',@isnumeric);
 ip.addRequired('screenNumber',@isnumeric);
-ip.addParameter('txt','');
+ip.addOptional('txt','',@isstring);
 checkType = @(t) any(strcmpi(t,{'line','linear','log'}));
-ip.addParameter('type','line',checkType);
-ip.addParameter('anchor',{''},@iscell);
-ip.parse(window, rect, screenNumber, varargin{:})
+ip.addOptional('type','line',checkType);
+ip.addOptional('anchor',{'None','A Lot'},@iscell);
+ip.parse(window, rect, screenNumber, varargin)
 window  = ip.Results.window;
 rect  = ip.Results.rect;
 screenNumber  = ip.Results.screenNumber;
 img_type = ip.Results.type;
 anchor = ip.Results.anchor;
-if ~isempty(ip.Results.txt)
-    show_text = 1;
-    txt = ip.Results.txt;
-end
-if length(ip.Results.anchor) > 1
-   show_anchor = 1;
-   anchor = ip.Results.anchor;
-end
+txt = 
+% if nargin > 3
+%     if any(strcmpi('txt',varargin))
+%         show_text = 1;
+%         txt = varargin{find(strcmpi('txt',varargin)) + 1};
+%     end
+%     if any(strcmpi('type',varargin))
+%         img_type = varargin{find(strcmpi('type',varargin)) + 1};
+%     end
+%         if any(strcmpi('type',varargin))
+%         img_type = varargin{find(strcmpi('type',varargin)) + 1};
+%     end
+% end
 
 % Check that image is on path
 switch img_type
@@ -170,18 +173,11 @@ while getRating
         Screen('DrawLine',window,[255 0 0],cursor.x,cursor.y-(ceil(.107*(cursor.x-cursor.xmin)))-5,cursor.x,cursor.y+10,3);
     end
     
-    if show_text %Show optional Text
+    if show_text
         Screen('TextSize',window,36);
         DrawFormattedText(window, txt,'center',disp.scale.height,255);
     end
     
-    if show_anchor     %Show Anchor
-        %     Screen('TextFont', window, 'Helvetica Light');
-        Screen('TextSize', window, 20);
-        DrawFormattedText(window, anchor{1}, cursor.xmin - length(anchor{1})*10 - 40,cursor.y - 25, [255 255 255]);
-        DrawFormattedText(window, anchor{2}, cursor.xmax + 25,cursor.y - 25, [255 255 255]);
-    end
-
     Screen('Flip',window);
 end
 RatingDuration = RatingOffset - RatingOnset;

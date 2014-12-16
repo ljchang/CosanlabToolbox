@@ -65,9 +65,9 @@ end
 % Create normal distribution from input parameters
 distribution = mu + sigma.*randn(5000,1);
 
-% Remove samples that exceed bounds of [0, 100]
+% Remove samples that exceed bounds of [0, 1]
 distribution(distribution < 0) = [];
-distribution(distribution > 100) = [];
+distribution(distribution > 1) = [];
 
 % Remove samples that are within the bounds of the cutoff
 if length(cutoff) == 1

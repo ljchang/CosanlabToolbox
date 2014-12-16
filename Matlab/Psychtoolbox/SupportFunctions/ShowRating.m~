@@ -10,7 +10,7 @@ function [RatingOnset RatingOffset RatingDuration] = ShowRating(rating, screendu
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Input:
 %
-% rating                    a vector of ratings to plot (e.g., [.2,.5]).
+% rating                    a vector of ratings to plot ([]).
 % duration                  number of seconds to show rating
 % window                    Window ID of initial screen
 % rect                      1 x 4 matrix conatining the coordinates of
@@ -25,8 +25,6 @@ function [RatingOnset RatingOffset RatingDuration] = ShowRating(rating, screendu
 % 'type'                    followed by 'linear' or 'log' or 'line' to
 %                           indicate type of rating scale.  Default is
 %                           line.
-% 'anchor'                  followed by cell array of low and high rating
-%                           anchors (e.g., {'None','A lot'}
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Output:
@@ -65,18 +63,16 @@ show_anchor = 0;
 % Parse Inputs
 ip = inputParser;
 ip.CaseSensitive = false;
-ip.addRequired('rating', @isnumeric);
-ip.addRequired('screenduration', @isnumeric);
-ip.addRequired('window', @isnumeric);
-ip.addRequired('rect', @isnumeric);
+ip.addRequired('rating',.5, @isnumeric);
+ip.addRequired('screenDuration',@isnumeric);
+ip.addRequired('window',@isnumeric);
+ip.addRequired('rect',@isnumeric);
 ip.addRequired('screenNumber',@isnumeric);
 ip.addParameter('txt','');
 checkType = @(t) any(strcmpi(t,{'line','linear','log'}));
 ip.addParameter('type','line',checkType);
 ip.addParameter('anchor',{''},@iscell);
-ip.parse(rating,screenduration,window, rect, screenNumber, varargin{:})
-rating = ip.Results.rating;
-screenduration = ip.Results.screenduration;
+ip.parse(window, rect, screenNumber, varargin{:})
 window  = ip.Results.window;
 rect  = ip.Results.rect;
 screenNumber  = ip.Results.screenNumber;
