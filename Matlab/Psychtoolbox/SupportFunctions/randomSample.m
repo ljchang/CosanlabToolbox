@@ -85,5 +85,11 @@ elseif strcmpi(select_sign,'negative')
 end
 
 % Select Random Sample from remaining values
-x = RandSample(distribution);
+% if no values remain than return original rating
+if ~isempty(distribution)
+    x = RandSample(distribution);
+else
+    x = mu;
+end
+
 

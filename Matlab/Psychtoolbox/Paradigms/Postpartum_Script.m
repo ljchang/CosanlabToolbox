@@ -32,6 +32,10 @@
 % DEALINGS IN THE SOFTWARE.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%% Notes:
+% Repeat practice trial not working yet.
+
+
 %% GLOBAL PARAMETERS
 
 % clear all; close all; fclose all;
@@ -51,6 +55,7 @@ TRACKBALL_MULTIPLIER = 5;
 
 %% PREPARE DISPLAY
 % will break with error message if Screen() can't run
+Screen('Preference', 'SkipSyncTests', 1);
 AssertOpenGL;
 
 % Get the screen numbers. This gives us a number for each of the screens
@@ -59,8 +64,9 @@ screens = Screen('Screens');
 screenNumber = max(screens);
 
 % Prepare the screen
-[window rect] = Screen('OpenWindow', screenNumber, 0, [0 0 1200 900]);
-% [window rect] = Screen('OpenWindow',screenNumber);
+% [window rect] = Screen('OpenWindow', screenNumber, 0, [0 0 800 600]);
+% [window rect] = Screen('OpenWindow', screenNumber, 0, [0 0 1200 900]);
+[window rect] = Screen('OpenWindow',screenNumber);
 Screen('fillrect', window, screenNumber);
 HideCursor;
 
@@ -103,10 +109,9 @@ qind = 1:length(q);
 
 % Expectations
 exp = q;
-% exp{1} = 'How much do you think most baby''s eat?';
-
+% exp{1} = 'How much do you think most baby''s eat?'
 % Emotions
-emotions = {'guilt','anger', 'happiness', 'pride', 'sadness', 'shame', 'surprise'};
+emotions = {'anger', 'guilt', 'happiness', 'pride', 'sadness', 'shame', 'surprise'};
 
 % Create random signs
 select_sign = cellstr([repmat('positive',round(length(q)/2),1);repmat('negative',round(length(q)/2),1)]);
@@ -124,7 +129,8 @@ questionDur = 2;
 %% Text for slides
 
 % %Instructions
-instruct = 'We will now practice how to make ratings.\n\nYou will not be receiving any pain during practice.\n\nAfter each trial you will rate the intensity of the pain.\n\nPlease respond as honestly as you can.\n\nNobody else will be able to see your ratings.\n\n\nPress "spacebar" to continue.';
+pract_instruct = 'We will now practice how to make ratings.\n\nYou will be asked questions about your baby\n\nAfter you have responded you will be able to see how other mother''s have answered.\n\nAfter each question you will rate the intensity of emotion that you are feelling.\n\nPlease respond as honestly as you can.\n\n\nPress "spacebar" to continue.';
+instruct = 'Great!  We are now ready to begin the experiment.\n\nYou will be asked questions about your baby\n\nAfter you have responded you will be able to see how other mother''s have answered.\n\nAfter each question   you will rate the intensity of emotion that you are feelling.\n\nPlease respond as honestly as you can.\n\nAsk the experimenter if you have any questions.\n\n\nPress "spacebar" to continue.';
 
 %% PREPARE FOR INPUT
 % Enable unified mode of KbName, so KbName accepts identical key names on all operating systems:
@@ -136,6 +142,7 @@ key.space = KbName('SPACE');
 key.s = KbName('s');
 key.p = KbName('p');
 key.q = KbName('q');
+key.r = KbName('r');
 key.esc = KbName('ESCAPE');
 key.zero = KbName('0)');
 key.one = KbName('1!');
@@ -148,7 +155,7 @@ key.seven = KbName('7&');
 key.eight = KbName('8*');
 key.nine = KbName('9(');
 
-RestrictKeysForKbCheck([key.space, key.s, key.p, key.q, key.esc, 30:39]);
+RestrictKeysForKbCheck([key.space, key.s, key.p, key.q, key.r, key.esc, 30:39]);
 
 %% Collect inputs
 
@@ -216,18 +223,14 @@ end
 %% Run Script
 
 %Initialize File with Header
-hdr = 'Subject,Trial,QuestionIndex,ExperimentStart,FixationOnset,FixationOffset,FixationDur,QuestionOnset,QuestionOffset,QuestionDuration,QuestionRating,SocialNorm,FeedbackOnset,FeedbackOffset,FeedbackDur,GuiltOnset,GuiltOffset,GuiltDur,GuiltRating,AngerOnset,AngerOffset,AngerDur,AngerRating,FearOnset,FearOffset,FearDur,FearRating,HappinessOnset,HappinessOffset,HappinessDur,HappinessRating,PrideOnset,PrideOffset,PrideDur,PrideRating,SadnessOnset,SadnessOffset,SadnessDur,SadnessRating,ShameOnset,ShameOffset,ShameDur,ShameRating,SurpriseOnset,SurpriseOffset,SurpriseDur,SurpriseRating';
+hdr = 'Subject,Trial,QuestionIndex,ExperimentStart,FixationOnset,FixationOffset,FixationDur,QuestionOnset,QuestionOffset,QuestionDuration,QuestionRating,SocialNorm,FeedbackOnset,FeedbackOffset,FeedbackDur,AngerOnset,AngerOffset,AngerDur,AngerRating,GuiltOnset,GuiltOffset,GuiltDur,GuiltRating,HappinessOnset,HappinessOffset,HappinessDur,HappinessRating,PrideOnset,PrideOffset,PrideDur,PrideRating,SadnessOnset,SadnessOffset,SadnessDur,SadnessRating,ShameOnset,ShameOffset,ShameDur,ShameRating,SurpriseOnset,SurpriseOffset,SurpriseDur,SurpriseRating';
 timings = nan(1,19);
 dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Postpartum.csv']), hdr,'')
 
 % put up instruction screen
 Screen('TextSize',window, 36);
-DrawFormattedText(window,instruct,'center','center',255);
+DrawFormattedText(window,pract_instruct,'center','center',255);
 Screen('Flip',window);
-
-% Shuffle questions
-%randomize order
-
 
 % wait for experimenter to press spacebar
 keycode(key.space) = 0;
@@ -235,10 +238,86 @@ while keycode(key.space) == 0
     [presstime keycode delta] = KbWait;
 end
 
-% ready screen
-Screen('TextSize',window,72);
-DrawFormattedText(window,'Ready','center','center',255);
+%%% Practice Trial
+repeat = 1;
+while repeat ~= 0
+    %%% Fixation
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Screen('CopyWindow',disp.fixation.w,window);
+    Screen('Flip',window);
+    WaitSecs(2);
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    %%% Question
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    [practice(1) practice(2) practice(3) practice(4)] = GetRating(window, rect, screenNumber, 'txt', 'How much does your baby weigh?', 'type','line','anchor', {'0 lbs','50 lbs'});
+    WaitSecs(questionDur);
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    %%% Feedback
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    practice(5) = .75; %hard code the norm
+    if practice(4) > practice(5)
+        fbck = 'You have reported more than most other mothers';
+    elseif practice(4) < practice(5)
+        fbck = 'You have reported less than most other mothers';
+    else
+        fbck = 'You have reported about the same as most other mothers';
+    end
+    [practice(6) practice(7) practice(8)] = ShowRating([practice(4), practice(5)], feedbackDur, window, rect, screenNumber, 'txt', ['How much does your baby weigh?\n\nRed line indicates your response\nGreen line indicates what most other mothers report\n\n' fbck], 'type','line', 'anchor', {'0 lbs','50 lbs'});
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    %%% Short Fixation
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Screen('CopyWindow',disp.fixation.w,window);
+    Screen('Flip',window);
+    WaitSecs(1.5)
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    %%% Emotion Ratings - Probably should randomize these per question
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    lastt = 8;
+    for e = 1:length(emotions)
+        [practice(lastt + 1) practice(lastt + 2) practice(lastt + 3) practice(lastt + 4)] = GetRating(window, rect, screenNumber, 'txt',['How much ' emotions{e} ' do you feel?'],'type','line', 'anchor', {'None','A Lot'});
+        lastt = lastt + 4;
+        
+        % Wait for 1 second in between each rating
+        Screen('Flip',window);
+        WaitSecs(1)
+    end
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    %%% Repeat Practice trials?
+    Screen('TextSize',window, 36);
+    DrawFormattedText(window,'Would you like to repeat practice trial?\n\nPress ''r'' to repeat or ''p'' to proceed','center','center',255);
+    Screen('Flip',window);
+    keycode(key.r) = 0;
+    keycode(key.p) = 0;
+    ListenChar(2); %Stop listening to keyboard.
+    while(keycode(key.p) == 0 && keycode(key.r) == 0)
+        [presstime keycode delta] = KbWait;
+    end
+    % 'r' restarts practice trial, 'p' proceeds
+    if keycode(key.p) == 1
+        repeat = 0;
+    end
+    ListenChar(1); %Start listening to keyboard again.
+    
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Run Experiment
+
+% put up instruction screen
+Screen('TextSize',window, 36);
+DrawFormattedText(window,instruct,'center','center',255);
 Screen('Flip',window);
+
+% wait for experimenter to press spacebar
+keycode(key.space) = 0;
+while keycode(key.space) == 0
+    [presstime keycode delta] = KbWait;
+end
 
 % wait for experimenter to press spacebar
 WaitSecs(.2);
@@ -250,8 +329,6 @@ end
 %Start Video Recording
 if USE_VIDEO
     % Start capture -
-    %need to figure out how to deal with the initial pause at the beginning.
-    % [fps starttime] = Screen('StartVideoCapture', capturePtr [, captureRateFPS=25] [, dropframes=0] [, startAt]);
     [fps t] = Screen('StartVideoCapture', grabber, 30, 0);
 end
 
@@ -260,9 +337,10 @@ Screen('CopyWindow',disp.fixation.w,window);
 startfix = Screen('Flip',window);
 WaitSecs(STARTFIX);
 
-
 % trial loop
-for trial = 1:length(q)
+trial = 1;
+endExperiment = false;
+while trial <= length(q) || ~endExperiment
     
     %Record Data
     % 'Subject,Trial,QuestionIndex,ExperimentStart,FixationOnset,FixationOffset,FixationDur,QuestionOnset,QuestionOffset,QuestionDuration,QuestionRating,SocialNorm,FeedbackOnset,FeedbackOffset,FeedbackDur,GuiltOnset,GuiltOffset,GuiltDur,GuiltRating,AngerOnset,AngerOffset,AngerDur,AngerRating,FearOnset,FearOffset,FearDur,FearRating,HappinessOnset,HappinessOffset,HappinessDur,HappinessRating,PrideOnset,PrideOffset,PrideDur,PrideRating,SadnessOnset,SadnessOffset,SadnessDur,SadnessRating,ShameOnset,ShameOffset,ShameDur,ShameRating,SurpriseOnset,SurpriseOffset,SurpriseDur,SurpriseRating';
@@ -290,7 +368,14 @@ for trial = 1:length(q)
     %%% Feedback
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     timings(12) = randomSample(timings(11),20,'cutoff',[0,1],'sign',select_sign(trial)); %Social Norm
-    [timings(13) timings(14) timings(15)] = ShowRating([timings(11), timings(12)], feedbackDur, window, rect, screenNumber, 'txt', q{trial}, 'type','line', 'anchor', {'None','A Lot'});
+    if timings(11) > timings(12)
+        fbck = 'You have reported more than most other mothers';
+    elseif timings(11) < timings(12)
+        fbck = 'You have reported less than most other mothers';
+    else
+        fbck = 'You have reported about the same as most other mothers';
+    end
+    [timings(13) timings(14) timings(15)] = ShowRating([timings(11), timings(12)], feedbackDur, window, rect, screenNumber, 'txt', [q{trial} '\n\nRed line indicates your response\nGreen line indicates what most other mothers report\n\n' fbck], 'type','line', 'anchor', {'None','A Lot'});
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     
@@ -313,9 +398,10 @@ for trial = 1:length(q)
         WaitSecs(1)
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
+    
     % Append data to file after every trial
     dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Postpartum.csv']), timings, 'delimiter',',','-append','precision',10)
+    
 end
 
 

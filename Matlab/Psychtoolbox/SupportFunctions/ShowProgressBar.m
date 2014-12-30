@@ -1,8 +1,8 @@
-function secRemain = ShowProgressBar(time, window, rect, screenNumber, varargin)
+function [Onset, Offset, Duration] = ShowProgressBar(time, window, rect, screenNumber, varargin)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-% [secRemain] = ShowProgressBar(time, window, rect, screenNumber, varargin)
+% [Onset, Offset, Duration] = ShowProgressBar(time, window, rect, screenNumber, varargin)
 %
 % This function will display a graphical countdown in seconds
 %
@@ -20,14 +20,17 @@ function secRemain = ShowProgressBar(time, window, rect, screenNumber, varargin)
 %
 % 'txt'                     followed by string of text to display above
 %                           rating
+% 'anchor'                  followed by cell array of low and high rating
+%                           anchors (e.g., {'0','30'})
+% 'increment'               followed by seconds to increment progress bar
+%                           (default: 1)
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Output:
 %
-% RatingOnset               Onset of Rating Screen
-% RatingOffset              Offset of Rating Screen
-% RatingDuration            Duration of Rating Screen
-% Rating                    Continuous Rating between 0 and 100
+% Onset                     Onset of Rating Screen
+% Offset                    Offset of Rating Screen
+% Duration                  Duration of Rating Screen
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (c) 2014 Luke Chang
@@ -53,6 +56,7 @@ function secRemain = ShowProgressBar(time, window, rect, screenNumber, varargin)
 
 % Defaults
 show_text = false;
+show_anchor = false;
 wait_increment = 1;
 
 % Parse Inputs
@@ -63,21 +67,30 @@ ip.addRequired('window', @isnumeric);
 ip.addRequired('rect', @isnumeric);
 ip.addRequired('screenNumber',@isnumeric);
 ip.addParameter('txt','');
+ip.addParameter('anchor',{''},@iscell);
+% ip.addParameter('increment',{''},@isnumeric);
 ip.parse(time, window, rect, screenNumber, varargin{:})
 time = ip.Results.time;
 window  = ip.Results.window;
 rect  = ip.Results.rect;
 screenNumber  = ip.Results.screenNumber;
 if ~isempty(ip.Results.txt)
-    show_text = 1;
+    show_text = true;
     txt = ip.Results.txt;
 end
+if length(ip.Results.anchor) > 1
+    show_anchor = true;
+    anchor = ip.Results.anchor;
+end
+% if ~isempty(ip.Results.increment)
+%     wait_increment = ip.Results.increment;
+% end
 
 % Configure screen
+[disp.xcenter, disp.ycenter] = RectCenter(rect);
 disp.screenWidth = rect(3);
 disp.screenHeight = rect(4);
-disp.xcenter = disp.screenWidth/2;
-disp.ycenter = disp.screenHeight/2;
+[disp.xcenter, disp.ycenter] = RectCenter(rect);
 
 %%% create Rating screen
 disp.scale.width = 964;
@@ -86,7 +99,6 @@ disp.scale.w = Screen('OpenOffscreenWindow',screenNumber);
 
 % placement
 disp.scale.rect = [[disp.xcenter disp.ycenter]-[0.5*disp.scale.width 0.5*disp.scale.height] [disp.xcenter disp.ycenter]+[0.5*disp.scale.width 0.5*disp.scale.height]];
-% Screen('DrawTexture',disp.scale.w,disp.scale.texture,[],disp.scale.rect);
 
 % determine cursor parameters
 cursor.xmin = disp.scale.rect(1) + 123;
@@ -97,8 +109,12 @@ cursor.center = cursor.xmin + ceil(cursor.width/2);
 cursor.y = disp.scale.rect(4) - 41;
 cursor.labels = cursor.xmin + [10 42 120 249 379];
 
+% Create Rectangle Frame
+baseRect = [0 0 cursor.width 50];
+RectFrame = CenterRectOnPointd(baseRect, disp.xcenter, disp.ycenter + 100);
+
 % Get Rating Onset Time
-RatingOnset = GetSecs;
+Onset = GetSecs;
 
 % Show Ratings
 line_array = [];
@@ -107,33 +123,36 @@ color_array = [];
 tic
 for t = 1:time
     % Calculate percentage completed
-    tmpTime = toc;
-    pctComplete = tmpTime/time;
+    pctComplete = t/time;
     
-    % Starting position (x,y)
-    l(1,1) = cursor.xmin;
-    l(2,1) = cursor.y;
+    % Plot rectangle frame
+    penWidthPixels = 6;
+    Screen('FrameRect', window, [255 255 255], RectFrame, penWidthPixels);
     
-    % Ending position (x,y)
-    l(1,2) = cursor.xmin + pctComplete * cursor.width;
-    l(2,2) = cursor.y;
-    
-    % Colors (need to specify separate column for start and stop
-    col(:,1) = [255 0 0]; %color
-    col(:,2) = [255 0 0 ]; %color
-    
-    % Plot ratings cursor
-    %     Screen('DrawTextures',window,disp.scale.texture,[],disp.scale.rect);
-    Screen('DrawLines',window, l, 10,col);
+    % Fill Rectangle
+    baseFill = [0 0 cursor.width * pctComplete, 50];
+    RectFill=AlignRect(baseFill,RectFrame,'left','top');
+    Screen('FillRect', window, [255 255 255 ], RectFill);
     Screen('Flip',window);
     
+    % Add text if requested
     if show_text
         Screen('TextSize',window,36);
         DrawFormattedText(window, txt,'center',disp.scale.height,255);
+    end
+    
+    % Add Anchors if requested
+    if show_anchor
+        %     Screen('TextFont', window, 'Helvetica Light');
+        Screen('TextSize', window, 20);
+        DrawFormattedText(window, anchor{1}, cursor.xmin - length(anchor{1})*10 - 30,disp.ycenter + 90, [255 255 255]);
+        DrawFormattedText(window, anchor{2}, cursor.xmax + 25,disp.ycenter + 90, [255 255 255]);
     end
     
     % Wait
     WaitSecs(wait_increment)
 end
 
-
+% Get Timing
+Offset = GetSecs;
+Duration = Offset - Onset;
