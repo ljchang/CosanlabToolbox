@@ -290,6 +290,9 @@ switch CONDITION
     case {4,8}
         hdr = 'Subject,Condition,Trial,ExperimentStart,StimulationOnset,StimulusOffset,StimulationDur,RatingOnset,RatingOffset,RatingDur,Rating,PartnerRating,PartnerRatingOnset,PartnerRatingOffset,PartnerRatingDur';
         timings = nan(1,15);
+    case {5,6}
+        hdr = 'Subject,Condition,Trial,ExperimentStart,StimulationOnset,StimulusOffset,StimulationDur,RatingOnset,RatingOffset,RatingDur,Rating,ComfortOnset,ComfortOffset,ComfortDur';
+        timings = nan(1,15);
 end
 dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CONDITION) '.csv']), hdr,'')
 
@@ -394,6 +397,15 @@ while t <= nTrials
             timings(12) = incoming_data(4);
             txt = 'This is how your partner wanted you to know that they are feeling.';
             [timings(13) timings(14) timings(15)] = ShowRating(timings(12), FEEDBACKDUR, window, rect, screenNumber, 'txt', txt, 'type','line','anchor',{'None','A Lot'});
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+        case 5 %Comfort Your Partner :: Only for condition 5
+            
+            %%% Share Feeling
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            comfort_time = incoming_data(4);
+            txt = 'Comfort your partner until the end of the timer.';
+            [timings(12) timings(13) timings(14)] = ShowProgressBar(comfort_time,window, rect, screenNumber,'txt',txt,'anchor',{'0',num2str(comfort_time)});
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
         case 8 %Show Button Press :: Only for condition 8

@@ -68,8 +68,8 @@ background=[0, 0, 0];
 screen=max(Screen('Screens'));
 
 % This will open a screen with background color 'background':
-[window rect] = Screen('OpenWindow', screen, background);
-% win = Screen('OpenWindow', screen);
+[window rect] = Screen('OpenWindow', screen, background, [0 0 1200 900]);
+% [window rect] = Screen('OpenWindow', screen, background);
 
 % Hide the mouse cursor:
 HideCursor;
@@ -82,6 +82,8 @@ esc=KbName('ESCAPE');
 space=KbName('space');
 p = KbName('p');
 
+% List of Emotions
+emotions = {'How much guilt do you feel?','How much anger do you feel?', 'How anxious do you feel?', 'How much happiness do you feel?', 'How much pride do you feel?', 'How much disgust do you feel?', 'How much sadness do you feel?', 'How much shame','How connected do you feel?'};
 
 %% Enter Subject Information
 
@@ -93,7 +95,7 @@ Screen('FillRect',window,screen); % paint black
 ListenChar(1); %Start listening to keyboard again.
 
 % Check if data file exists.  If so ask if we want to rerun, if not then quit and check subject ID.
-file_exist = exist(fullfile(fPath,'Data',[num2str(SUBID) '_VideoRating.csv']),'file');
+file_exist = exist(fullfile(fPath,'Data',[num2str(SUBID) '_Continuous_VideoRating.csv']),'file');
 ListenChar(2); %Stop listening to keyboard
 if file_exist == 2
     exist_text = ['WARNING!\n\nA data file exists for Subject - ' num2str(SUBID) '\n\nPress ''esc'' to quit or ''p'' to proceed'];
@@ -119,8 +121,13 @@ end
 ListenChar(1); %Start listening to keyboard again.
 
 %Initialize File with Header
+%Continous Rating
 hdr = 'Subject,Video,PositionX,PositionY,Timing,Rating';
-dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_VideoRating.csv']), hdr,'')
+dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Continuous_VideoRating.csv']), hdr,'')
+
+%Trial Emotion Ratings
+hdr2 = 'Subject,Video,GuiltOnset,GuiltOffset,GuiltDur,GuiltRating,AngerOnset,AngerOffset,AngerDur,AngerRating,AnxiousOnset,AnxiousOffset,AnxiousDur,AnxiousRating,HappinessOnset,HappinessOffset,HappinessDur,HappinessRating,PrideOnset,PrideOffset,PrideDur,PrideRating,DisgustOnset,DisgustOffset,DisgustDur,DisgustRating,SadnessOnset,SadnessOffset,SadnessDur,SadnessRating,ShameOnset,ShameOffset,ShameDur,ShameRating,ConnectedOnset,ConnectedOffset,ConnectedDur,ConnectedRating';
+dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Trial_VideoRating.csv']), hdr2,'')
 
 
 %% Set up Devices
@@ -152,9 +159,10 @@ end
 
 %% Load Movies
 if nargin < 1
-    moviename = fullfile(fPath,'Videos','ElonMusk_2013.mp4');
+    movie_list = rdir(fullfile(fPath,'Videos','*mp4'));
+    moviename = cellstr(strvcat(movie_list.name));
 end;
-nVideos = 1;
+nVideos = length(moviename);
 
 %% Run Paradigm
 
@@ -185,7 +193,7 @@ try
         % width and height of video frames. We could also query the total count of frames in
         % the movie, but computing 'framecount' takes long, so avoid to query
         % this property if you don't need it!
-        [movie movieduration fps movie_width movie_height] = Screen('OpenMovie', window, moviename);
+        [movie movieduration fps movie_width movie_height] = Screen('OpenMovie', window, moviename{i});
         
         % We estimate framecount instead of querying it - faster:
         framecount = movieduration * fps;
@@ -311,7 +319,7 @@ try
             DrawFormattedText(window, lTextAnchor, leftb, lb, [255 255 255]);
             
             % Append data to file after every trial
-            dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_VideoRating.csv']), [SUBID i position(end,:)], 'delimiter',',','-append','precision',10)
+            dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Continuous_VideoRating.csv']), [SUBID i position(end,:)], 'delimiter',',','-append','precision',10)
             
             
             % Done with drawing. Check the keyboard for subjects response:
@@ -351,16 +359,29 @@ try
         % Wait for subject to release keys:
         KbReleaseWait;
         
+        %%% Emotion Ratings
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        trial_out(1) = SUBID;
+        trial_out(2) = i; % Video Number
+        lastt = 2;
+        for e = 1:length(emotions)
+            [trial_out(lastt + 1) trial_out(lastt + 2) trial_out(lastt + 3) trial_out(lastt + 4)] = GetRating(window, rect, screen, 'txt',emotions{e},'type','line', 'anchor', {'None','A Lot'});
+            lastt = lastt + 4;
+            
+            % Wait for 1 second in between each rating
+            Screen('Flip',window);
+            WaitSecs(1)
+        end
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
+        % Append data to file after every trial
+        dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Trial_VideoRating.csv']), trial_out, 'delimiter',',','-append','precision',10)
+
     end; % Trial done. Next trial...
     
     %% Done with the experiment. Close onscreen window and finish.
     
-    if USE_VIDEO
-        %Record times
-        %     video_offset = toc;
-        %         nFrame = vid.FramesAcquired;
-        %         frameRate = nFrame/video_offset;
-        
+    if USE_VIDEO        
         % Stop capture engine and recording:
         Screen('StopVideoCapture', grabber);
         telapsed = GetSecs - t;
@@ -381,3 +402,4 @@ catch %#ok<CTCH>
     sca;
     psychrethrow(psychlasterror);
 end;
+

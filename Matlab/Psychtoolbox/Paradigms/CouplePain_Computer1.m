@@ -90,6 +90,8 @@ RATINGDUR = 1;
 CUEDUR = 1;
 ENDSCREENDUR = 3;
 STARTFIX = 1;
+TEMPDUR = 3;
+COMFORTDUR = 7;
 
 % Condition - will be function input
 % CONDITION = 4;
@@ -348,9 +350,9 @@ if USE_NETWORK
     fopen(connection);
     
     % Test Connection
-    WaitSecs(.1)
     fwrite(connection, [nTrials, SUBID + 100, CONDITION],'double');
-    
+    WaitSecs(.2)
+
     % Wait for signal from Computer 2 before proceeding
     testcomplete = 0;
     while testcomplete ~= 1
@@ -389,6 +391,8 @@ switch CONDITION
         hdr = 'Subject,Condition,Trial,Temperature,StimulationSite,ExperimentStart,AnticipationOnset,AnticipationOffset,AnticipationDur,StimulationOnset,StimulusOffset,StimulationDur,ShareFeelingOnset,ShareFeeling,Offset,ShareFeelingDur,ShareFeelingRating,RatingOnset,RatingOffset,RatingDur,Rating,FixationOnset,FixationOffset,FixationDur';
         timings = nan(1,23);
     case {5,6}
+            hdr = 'Subject,Condition,Trial,Temperature,StimulationSite,ExperimentStart,TalkOnset,TalkOffset,TalkDur,ComfortWaitOnset,ComfortWaitOffset,ComfortWaitDur,StimulationOnset,StimulationOffset,StimulationDur,RatingOnset,RatingOffset,RatingDur,Rating,FixationOnset,FixationOffset,FixationDur';
+        timings = nan(1,22);
 end
 dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CONDITION) '.csv']), hdr,'')
 
@@ -495,7 +499,7 @@ switch CONDITION
             dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CONDITION) '.csv']), timings, 'delimiter',',','-append','precision',10)
         end
         
-    case {1,2,3,5,6,7}  %Normal pain trials
+    case {1,2,3,7}  %Normal pain trials
         % trial loop
         for trial = 1:nTrials
             
@@ -559,6 +563,78 @@ switch CONDITION
             WaitSecs(FIXDUR(trial));
             timings(18) = GetSecs;
             timings(19) = timings(18) - timings(17);
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+            % Append data to file after every trial
+            dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CONDITION) '.csv']), timings, 'delimiter',',','-append','precision',10)
+        end
+        
+    case {5,6}  %Support and distraction trials
+        % trial loop
+        for trial = 1:nTrials
+            
+            %Record Data
+            %'Subject,Condition,Trial,Temperature,StimulationSite,ExperimentStart,CueOnset,CueOffset,CueDur,AnticipationOnset,AnticipationOffset,AnticipationDur,StimulationOnset,StimulusOffset,StimulationDur,RatingOnset,RatingOffset,RatingDur,Rating,FixationOnset,FixationOffset,FixationDur';
+            timings(1) = SUBID;
+            timings(2) = CONDITION;
+            timings(3) = trial;
+            timings(4) = STIMULI(trial);
+            timings(5) = SITES(trial);
+            timings(6) = startfix;
+            
+            %%% PRESTIMFIX
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            Screen('CopyWindow',disp.fixation.w,window);
+            timings(7) = Screen('Flip',window);
+            WaitSecs(FIXDUR(trial));
+            timings(8) = GetSecs;
+            timings(9) = timings(8) - timings(7);
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+            %%% Send start comfort signal on Computer 2 -  Continue Fixation
+            wait_time = TEMPDUR + COMFORTDUR;
+            if USE_NETWORK; fwrite(connection,[trial,CONDITION,5,wait_time],'double');  end
+            timings(10) = GetSecs;
+            WaitSecs(COMFORTDUR + .5);
+            timings(11) = GetSecs;
+            timings(12) = timings(11) - timings(10);
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                        
+            %%% STIM
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            if USE_THERMODE
+                % deliver thermal pain
+                timings(13) = TriggerHeat(STIMULI(trial),TEMPDUR);
+            else
+                Screen('CopyWindow',disp.nodevice.w,window);
+                Screen('TextSize',window,72);
+                DrawFormattedText(window,num2str(STIMULI(trial)),'center',disp.ycenter+200,255);
+                timings(13) = Screen('Flip',window);
+                WaitSecs(TEMPDUR);
+            end
+            timings(14) = GetSecs;
+            timings(15) = timings(14) - timings(13);
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+            %%% RATING
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            if USE_NETWORK; fwrite(connection,[trial,CONDITION,3,0],'double');  end
+            
+            txt = 'Please rate the intensity of your pain.\n\n Your partner will not see this rating.';
+            [timings(16) timings(17) timings(18) timings(19)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','A Lot'});
+            
+            if USE_NETWORK % Wait for signal from Computer 2 before proceeding
+                computer2_startsignal = WaitForInput(connection, [1,1], 1);
+            end
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+            %%% ENDFIX
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            Screen('CopyWindow',disp.fixation.w,window);
+            timings(20) = Screen('Flip',window);
+            WaitSecs(FIXDUR(trial));
+            timings(21) = GetSecs;
+            timings(22) = timings(21) - timings(20);
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
             % Append data to file after every trial

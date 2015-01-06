@@ -120,6 +120,24 @@ Onset = GetSecs;
 line_array = [];
 color_array = [];
 
+% Plot rectangle frame
+penWidthPixels = 6;
+Screen('FrameRect', window, [255 255 255], RectFrame, penWidthPixels);
+
+% Add text if requested
+if show_text
+    Screen('TextSize',window,36);
+    DrawFormattedText(window, txt,'center',disp.scale.height,255);
+end
+
+% Add Anchors if requested
+if show_anchor
+    %     Screen('TextFont', window, 'Helvetica Light');
+    Screen('TextSize', window, 20);
+    DrawFormattedText(window, anchor{1}, cursor.xmin - length(anchor{1})*10 - 30,disp.ycenter + 90, [255 255 255]);
+    DrawFormattedText(window, anchor{2}, cursor.xmax + 25,disp.ycenter + 90, [255 255 255]);
+end
+
 tic
 for t = 1:time
     % Calculate percentage completed
