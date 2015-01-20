@@ -44,7 +44,7 @@ function [position] = Couple_VideoRating(moviename);
 
 % Set Path
 fPath = '/Users/lukechang/Dropbox/Doctor_Patient_Andrew/CouplesParadigm';
-cosanlabToolsPath = '/Users/lukechang/Dropbox/Github/Cosanlabtoolbox/Matlab/Psychtoolbox';
+cosanlabToolsPath = '/Users/lukechang/Github/Cosanlabtoolbox/Matlab/Psychtoolbox';
 addpath(genpath(fullfile(cosanlabToolsPath,'SupportFunctions')));
 
 % Devices
