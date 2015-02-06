@@ -100,11 +100,17 @@ clear image texture
 %% Questions
 
 % Main Questions
-q{1} = 'How much does your baby eat?';
-q{2} = 'How much help do you need from your partner?';
-q{3} = 'How responsible do you feel for your baby''s future?';
-q{4} = 'How much do you exercise?';
-q{5} = 'How healthy do you eat?';
+q{1} = 'What percentage of the day do you feel overhwelmed?';
+q{2} = 'What percentage of the time do you think that you are a good mother?';
+q{3} = 'What percentage of the day do you understand what your baby wants or needs?';
+q{4} = 'What percent of the day do you feel a sense of deep love and affection for your baby?';
+q{5} = 'How many minutes does it take for you to soothe your baby when your baby is distressed or crying?';
+q{6} = 'What percentage of the day do you feel joyful being with your baby?';
+q{7} = 'What percentage of your baby?s future or success do you feel directly responsible for?';
+q{8} = 'How many hours per week do you leave your baby in the care of another person?';
+q{9} = 'How many times per week do you get into conflicts with your partner or close others? ';
+q{10} = 'What percentage of the overall caretaking for your baby do you feel reliant or dependent on other people for?';
+
 qind = 1:length(q);
 
 % Expectations
