@@ -33,33 +33,26 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Notes:
+% Repeat practice trial not working yet.
 
 
 %% GLOBAL PARAMETERS
 
 % clear all; close all; fclose all;
 fPath = '/Users/lukechang/Dropbox/Postpartum/Paradigm'; %This is the directory where your paradigm and data will be stored
-cosanlabToolsPath = '/Users/lukechang/Dropbox/Github/Cosanlabtoolbox/Matlab/Psychtoolbox';  %This is the directory where the helper functions are located
-addpath(genpath(fullfile(cosanlabToolsPath,'SupportFunctions')));
 
 % Check if Paradigm Folder exists
-folder_exist = exist(fPath,'dir');
-if folder_exist ~= 7
-   error('Please make sure the path to your paradigm directory is correct') 
-end
 
 % Check if Data Folder exists
-folder_exist = exist(fullfile(fPath,'Data'),'dir');
-if folder_exist ~= 7
-    sprintf('Warning:  Data folder does not exist.  Creating it now.')
-    mkdir(fullfile(fPath,'Data'))
+file_exist = exist(fullfile(fPath,'Data',[num2str(SUBID) '_Postpartum.csv']),'file');
+if file_exist == 2
+cosanlabToolsPath = '/Users/lukechang/Dropbox/Github/Cosanlabtoolbox/Matlab/Psychtoolbox'; %
+try
+    test = which(ShowRating);
 end
-
-% Check if CosanlabToolbox is on path
-test_file = exist('ShowRating');
-if test_file ~= 2
-    error('Make sure Cosanlabtoolbox is on your matlab path.')
-end
+% fPath = '/Users/10cam/Dropbox/Postpartum/Paradigm';
+% cosanlabToolsPath = '/Users/10cam/Documents/Cosanlabtoolbox/Matlab/Psychtoolbox';
+addpath(genpath(fullfile(cosanlabToolsPath,'SupportFunctions')));
 
 % random number generator reset
 rand('state',sum(100*clock));
@@ -295,7 +288,7 @@ while repeat ~= 0
     else
         fbck = 'You have reported about the same as most other mothers';
     end
-    [practice(6) practice(7) practice(8)] = ShowRating([practice(4), practice(5)], feedbackDur, window, rect, screenNumber, 'txt', ['How much does your baby weigh?\n\nRed=You\nGreen=Other mothers\n\n\n\n\n\n\n\n' fbck], 'type','line', 'anchor', {'0 lbs','50 lbs'});
+    [practice(6) practice(7) practice(8)] = ShowRating([practice(4), practice(5)], feedbackDur, window, rect, screenNumber, 'txt', ['How much does your baby weigh?\n\nRed=You\nGreen=Other mothers\n\n\n\n\n\n' fbck], 'type','line', 'anchor', {'0 lbs','50 lbs'});
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     %%% Short Fixation
@@ -405,7 +398,7 @@ while trial <= length(q)
     else
         fbck = 'You have reported about the same as most other mothers';
     end
-    [timings(13) timings(14) timings(15)] = ShowRating([timings(11), timings(12)], feedbackDur, window, rect, screenNumber, 'txt', [q{trial} '\n\nRed=You\nGreen=Other mothers\n\n\n\n\n\n\n\n' fbck], 'type','line', 'anchor', anchor{trial});
+    [timings(13) timings(14) timings(15)] = ShowRating([timings(11), timings(12)], feedbackDur, window, rect, screenNumber, 'txt', [q{trial} '\n\nRed=You\nGreen=Other mothers\n\n\n\n\n\n' fbck], 'type','line', 'anchor', anchor{trial});
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     
