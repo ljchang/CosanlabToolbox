@@ -61,7 +61,7 @@ screens = Screen('Screens');
 clear all; close all; fclose all;
 % fPath = '/Users/lukechang/Dropbox/RomanticCouples/CouplesParadigm';
 % cosanlabToolsPath = '/Users/lukechang/Dropbox/Github/Cosanlabtoolbox/Matlab/Psychtoolbox';
-fPath = '/Users/lukechang/Dropbox/Doctor_Patient_Andrew/CouplesParadigm';
+fPath = '/Users/ljchang/Dropbox/Doctor_Patient_Andrew/CouplesParadigm';
 cosanlabToolsPath = '/Users/ljchang/Dropbox/Github/Cosanlabtoolbox/Matlab/Psychtoolbox';
 addpath(genpath(fullfile(cosanlabToolsPath,'SupportFunctions')));
 
@@ -103,8 +103,8 @@ screenNumber = max(screens);
 
 
 % Prepare the screen
-% [window rect] = Screen('OpenWindow',screenNumber);
-[window rect] = Screen('OpenWindow', screenNumber, 0, [0 0 1200 700]);
+[window rect] = Screen('OpenWindow',screenNumber);
+% [window rect] = Screen('OpenWindow', screenNumber, 0, [0 0 1200 700]);
 Screen('fillrect', window, screenNumber);
 % HideCursor;
 
