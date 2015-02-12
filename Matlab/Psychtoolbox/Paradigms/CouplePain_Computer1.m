@@ -47,11 +47,34 @@
 
 clear all; close all; fclose all;
 % fPath = '~/Dropbox/RomanticCouples/CouplesParadigm';
-fPath = '/Users/lukechang/Dropbox/Doctor_Patient_Andrew/CouplesParadigm';
-cosanlabToolsPath = '/Users/lukechang/Dropbox/Github/Cosanlabtoolbox/Matlab/Psychtoolbox';
-% fPath = '/Users/andrewfrederickson/Dropbox/Doctor_Patient_Andrew/CouplesParadigm';
-% cosanlabToolsPath = '/Users/andrewfrederickson/Documents/CosanlabToolbox/Matlab/PsychToolbox';
+
+if ismac
+    fPath = '/Users/lukechang/Dropbox/CouplesParadigm';
+    cosanlabToolsPath = '/Users/lukechang/Github/Cosanlabtoolbox/Matlab/Psychtoolbox';
+elseif ispc
+    fPath = '/Users/lukechang/Dropbox/CouplesParadigm';
+    cosanlabToolsPath = '/Users/lukechang/Github/Cosanlabtoolbox/Matlab/Psychtoolbox';
+end
 addpath(genpath(fullfile(cosanlabToolsPath,'SupportFunctions')));
+
+% Check if Paradigm Folder exists
+folder_exist = exist(fPath,'dir');
+if folder_exist ~= 7
+   error('Please make sure the path to your paradigm directory is correct') 
+end
+
+% Check if Data Folder exists
+folder_exist = exist(fullfile(fPath,'Data'),'dir');
+if folder_exist ~= 7
+    sprintf('Warning:  Data folder does not exist.  Creating it now.')
+    mkdir(fullfile(fPath,'Data'))
+end
+
+% Check if CosanlabToolbox is on path
+test_file = exist('ShowRating');
+if test_file ~= 2
+    error('Make sure Cosanlabtoolbox is on your matlab path.')
+end
 
 % random number generator reset
 rand('state',sum(100*clock));
@@ -59,16 +82,16 @@ rand('state',sum(100*clock));
 % Devices
 USE_THERMODE = 0;       % refers to thermode make 0 if not running on computer with thermode
 USE_BIOPAC = 0;         % refers to Biopac make 0 if not running on computer with biopac
-USE_VIDEO = 0;          % record video of Run
+USE_VIDEO = 1;          % record video of Run
 USE_NETWORK = 1;        % refers to Biopac make 0 if not running on computer with biopac
 
 TRACKBALL_MULTIPLIER = 5;
 
 % Number of Skin Sites
-nSites = 1;
+nSites = 4;
 
 % PAIN: set temps for thermode
-TEMPERATURES = [48 49 50];
+TEMPERATURES = [48 48 48 48];
 
 % Number of trials
 nTrials = nSites * length(TEMPERATURES);
@@ -93,10 +116,6 @@ STARTFIX = 1;
 TEMPDUR = 3;
 COMFORTDUR = 7;
 
-% Condition - will be function input
-% CONDITION = 4;
-% SUBID = 101;
-EXPERIMENTER = 1;
 
 %% PREPARE DISPLAY
 % will break with error message if Screen() can't run
@@ -429,7 +448,6 @@ if USE_VIDEO
     % [fps starttime] = Screen('StartVideoCapture', capturePtr [, captureRateFPS=25] [, dropframes=0] [, startAt]);
     [fps t] = Screen('StartVideoCapture', grabber, 30, 0);
 end
-
 % put up fixation
 Screen('CopyWindow',disp.fixation.w,window);
 startfix = Screen('Flip',window);
