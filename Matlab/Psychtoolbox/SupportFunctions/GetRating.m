@@ -25,6 +25,7 @@ function [RatingOnset RatingOffset RatingDuration Rating] = GetRating(window, re
 %                           line.
 % 'anchor'                  followed by cell array of low and high rating
 %                           anchors (e.g., {'None','A lot'}
+% 'txtSize'                 followed by size to display text
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Output:
@@ -70,6 +71,7 @@ ip.addParameter('txt','');
 checkType = @(t) any(strcmpi(t,{'line','linear','log'}));
 ip.addParameter('type','line',checkType);
 ip.addParameter('anchor',{''},@iscell);
+ip.addParameter('txtSize',@isnumeric)
 ip.parse(window, rect, screenNumber, varargin{:})
 window  = ip.Results.window;
 rect  = ip.Results.rect;
@@ -84,6 +86,12 @@ if length(ip.Results.anchor) > 1
    show_anchor = 1;
    anchor = ip.Results.anchor;
 end
+if ~isempty(ip.Results.txtSize)
+    txtSize = ip.Results.txtSize;
+else
+    txtSize = 32;
+end
+
 
 % Check that image is on path
 switch img_type
@@ -171,7 +179,7 @@ while getRating
     end
     
     if show_text %Show optional Text
-        Screen('TextSize',window,36);
+        Screen('TextSize',window,txtSize);
         DrawFormattedText(window, txt,'center',disp.scale.height,255);
     end
     

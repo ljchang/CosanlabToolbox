@@ -27,6 +27,7 @@ function [RatingOnset RatingOffset RatingDuration] = ShowRating(rating, screendu
 %                           line.
 % 'anchor'                  followed by cell array of low and high rating
 %                           anchors (e.g., {'None','A lot'}
+% 'txtSize'                 followed by size to display text
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Output:
@@ -74,6 +75,7 @@ ip.addParameter('txt','');
 checkType = @(t) any(strcmpi(t,{'line','linear','log'}));
 ip.addParameter('type','line',checkType);
 ip.addParameter('anchor',{''},@iscell);
+ip.addParameter('txtSize',@isnumeric)
 ip.parse(rating,screenduration,window, rect, screenNumber, varargin{:})
 rating = ip.Results.rating;
 screenduration = ip.Results.screenduration;
@@ -82,6 +84,7 @@ rect  = ip.Results.rect;
 screenNumber  = ip.Results.screenNumber;
 img_type = ip.Results.type;
 anchor = ip.Results.anchor;
+txtSize = ip.Results.txtSize;
 if ~isempty(ip.Results.txt)
     show_text = 1;
     txt = ip.Results.txt;
@@ -89,6 +92,11 @@ end
 if length(ip.Results.anchor) > 1
    show_anchor = 1;
    anchor = ip.Results.anchor;
+end
+if ~isempty(ip.Results.txtSize)
+    txtSize = ip.Results.txtSize;
+else
+    txtSize = 32;
 end
 
 
@@ -191,7 +199,7 @@ else %change size
 end
 
 if show_text
-    Screen('TextSize',window,36);
+    Screen('TextSize',window,txtSize);
     DrawFormattedText(window, txt,'center',disp.scale.height,255);
 end
 
