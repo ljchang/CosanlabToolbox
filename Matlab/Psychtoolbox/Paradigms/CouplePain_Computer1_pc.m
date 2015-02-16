@@ -374,13 +374,13 @@ end
 switch CONDITION
     case 0 %practice trials
         instruct = 'We will now practice how to make ratings.\n\nYou will not be receiving any pain during practice.\n\nAfter each trial you will rate the intensity of the pain.\n\nPlease respond as honestly as you can.\n\nNobody else will be able to see your ratings.\n\n\nPress "spacebar" to continue.';
-    case 1,2,3,9 %Standard conditions
+    case {1,2,3,9} %Standard conditions
         instruct = 'In this condition you will receive several trials of heat stimulation.\n\nAfter each trial you will rate the intensity of the pain.\n\nPlease respond as honestly as you can.\n\nNobody else will be able to see your ratings.\n\n\nPress "spacebar" to continue.';
     case 4 %Button press control
         instruct = 'In this condition you will receive several trials of heat stimulation.\n\nAfter each trial you will be be instructed to rate a specific number.\n\nAfter you have selected the rating, you will then rate the intensity of the pain.\n\nNobody else will be able to see these ratings.\n\n\nPress "spacebar" to continue.';
     case 5 %Experience sharing
         instruct = 'In this condition you will receive several trials of heat stimulation.\n\nAfter each trial you will be able to share how you are feeling with your partner.\n\nAfter you have sent your message, you will then rate the intensity of the pain.\n\nNobody else will be able to see these ratings.\n\nPress "spacebar" to continue.';
-    case 6,7
+    case {6,7}
         instruct = 'In this condition you will receive several trials of heat stimulation.\n\nYour partner can directly communicate with you during the pain stimulation.\n\nAfter each trial, you will then rate the intensity of the pain.\n\nNobody else will be able to see these ratings.\n\n\nPress "spacebar" to continue.';
     case 8%Hand holding
         instruct = 'In this condition you will receive several trials of heat stimulation.\n\nYour partner will be holding your hand during the stimulation.\n\nAfter each trial you will then rate the intensity of the pain.\n\nNobody else will be able to see these ratings.\n\n\nPress "spacebar" to continue.';
@@ -765,7 +765,7 @@ switch CONDITION
             wait_time = TEMPDUR + COMFORTDUR;
             if USE_NETWORK; fwrite(connection,[trial,CONDITION,CONDITION,wait_time],'double');  end
             timings(10) = GetSecs;
-            WaitSecs(COMFORTDUR + .1);
+            WaitSecs(COMFORTDUR - 3);
             timings(11) = GetSecs;
             timings(12) = timings(11) - timings(10);
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -791,6 +791,7 @@ switch CONDITION
             
             %%% RATING
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            WaitSecs(2)
             if USE_NETWORK; fwrite(connection,[trial,CONDITION,3,0],'double');  end
             
             txt = 'Please rate the intensity of your pain.\n\n Your partner will not see this rating.';
