@@ -95,7 +95,7 @@ CUEDUR = 1;
 ENDSCREENDUR = 3;
 STARTFIX = 1;
 TEMPDUR = 12;
-COMFORTDUR = 25;
+COMFORTDUR = 13;
 
 % Condition - will be function input
 % CONDITION = 4;
@@ -113,8 +113,8 @@ screens = Screen('Screens');
 screenNumber = max(screens);
 
 % Prepare the screen
-%[window rect] = Screen('OpenWindow',screenNumber);
-[window rect] = Screen('OpenWindow', screenNumber, 0, [0 0 1200 700]);
+[window rect] = Screen('OpenWindow',screenNumber);
+% [window rect] = Screen('OpenWindow', screenNumber, 0, [0 0 1200 700]);
 Screen('fillrect', window, screenNumber);
 % HideCursor;
 
@@ -262,7 +262,7 @@ if USE_THERMODE
     % initialize parallel port
     global THERMODE_PORT;
     THERMODE_PORT = digitalio('parallel','LPT1');
-   addline(THERMODE_PORT,0:7,'out'); 
+    addline(THERMODE_PORT,0:7,'out');
 end
 
 if USE_BIOPAC
@@ -359,7 +359,7 @@ if USE_NETWORK
     % Test Connection
     fwrite(connection, [nTrials, SUBID + 100, CONDITION],'double');
     WaitSecs(.2)
-
+    
     % Wait for signal from Computer 2 before proceeding
     testcomplete = 0;
     while testcomplete ~= 1
@@ -384,7 +384,7 @@ switch CONDITION
         instruct = 'In this condition you will receive several trials of heat stimulation.\n\nYour partner can directly communicate with you during the pain stimulation.\n\nAfter each trial, you will then rate the intensity of the pain.\n\nNobody else will be able to see these ratings.\n\n\nPress "spacebar" to continue.';
     case 8%Hand holding
         instruct = 'In this condition you will receive several trials of heat stimulation.\n\nYour partner will be holding your hand during the stimulation.\n\nAfter each trial you will then rate the intensity of the pain.\n\nNobody else will be able to see these ratings.\n\n\nPress "spacebar" to continue.';
-    end
+end
 
 
 %% Run Script
@@ -398,7 +398,7 @@ switch CONDITION
         hdr = 'Subject,Condition,Trial,Temperature,StimulationSite,ExperimentStart,AnticipationOnset,AnticipationOffset,AnticipationDur,StimulationOnset,StimulusOffset,StimulationDur,ShareFeelingOnset,ShareFeeling,Offset,ShareFeelingDur,ShareFeelingRating,RatingOnset,RatingOffset,RatingDur,Rating,FixationOnset,FixationOffset,FixationDur';
         timings = nan(1,23);
     case {6,7}
-            hdr = 'Subject,Condition,Trial,Temperature,StimulationSite,ExperimentStart,TalkOnset,TalkOffset,TalkDur,ComfortWaitOnset,ComfortWaitOffset,ComfortWaitDur,StimulationOnset,StimulationOffset,StimulationDur,RatingOnset,RatingOffset,RatingDur,Rating,FixationOnset,FixationOffset,FixationDur';
+        hdr = 'Subject,Condition,Trial,Temperature,StimulationSite,ExperimentStart,TalkOnset,TalkOffset,TalkDur,ComfortWaitOnset,ComfortWaitOffset,ComfortWaitDur,StimulationOnset,StimulationOffset,StimulationDur,RatingOnset,RatingOffset,RatingDur,Rating,FixationOnset,FixationOffset,FixationDur';
         timings = nan(1,22);
 end
 dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CONDITION) '.csv']), hdr,'')
@@ -531,7 +531,7 @@ switch CONDITION
             %%% STIM
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if USE_NETWORK; fwrite(connection,[trial,CONDITION,2,0],'double');  end
-
+            
             if USE_BIOPAC; TriggerBiopac_io32(BIOPAC_PULSE_DUR); end
             
             if USE_THERMODE
@@ -560,7 +560,7 @@ switch CONDITION
             
             txt = 'Please rate the intensity of your pain.\n\n Your partner will not see this rating.';
             [timings(13) timings(14) timings(15) timings(16)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','Worst Pain Imaginable'},'txtSize',28);
-
+            
             if USE_NETWORK % Wait for signal from Computer 2 before proceeding
                 computer2_startsignal = WaitForInput(connection, [1,1], 1);
             end
@@ -573,161 +573,6 @@ switch CONDITION
             WaitSecs(FIXDUR(trial));
             timings(18) = GetSecs;
             timings(19) = timings(18) - timings(17);
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
-            % Append data to file after every trial
-            dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CONDITION) '.csv']), timings, 'delimiter',',','-append','precision',10)
-        end
-        
-    case {6,7}  %Support and distraction trials
-        % trial loop
-        for trial = 1:nTrials
-            
-            %Record Data
-            %'Subject,Condition,Trial,Temperature,StimulationSite,ExperimentStart,CueOnset,CueOffset,CueDur,AnticipationOnset,AnticipationOffset,AnticipationDur,StimulationOnset,StimulusOffset,StimulationDur,RatingOnset,RatingOffset,RatingDur,Rating,FixationOnset,FixationOffset,FixationDur';
-            timings(1) = SUBID;
-            timings(2) = CONDITION;
-            timings(3) = trial;
-            timings(4) = STIMULI(trial);
-            timings(5) = SITES(trial);
-            timings(6) = startfix;
-            
-            %%% PRESTIMFIX
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            Screen('CopyWindow',disp.fixation.w,window);
-            timings(7) = Screen('Flip',window);
-            WaitSecs(FIXDUR(trial));
-            timings(8) = GetSecs;
-            timings(9) = timings(8) - timings(7);
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
-            %%% Send start comfort signal on Computer 2 -  Continue Fixation
-            wait_time = TEMPDUR + COMFORTDUR;
-            if USE_NETWORK; fwrite(connection,[trial,CONDITION,5,wait_time],'double');  end
-            timings(10) = GetSecs;
-            WaitSecs(COMFORTDUR + .5);
-            timings(11) = GetSecs;
-            timings(12) = timings(11) - timings(10);
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                        
-            %%% STIM
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            if USE_BIOPAC; TriggerBiopac_io32(BIOPAC_PULSE_DUR); end
-
-            if USE_THERMODE
-                % deliver thermal pain
-                timings(13) = TriggerHeat(STIMULI(trial),TEMPDUR);
-                WaitSecs(TEMPDUR)
-            else
-                Screen('CopyWindow',disp.nodevice.w,window);
-                Screen('TextSize',window,72);
-                DrawFormattedText(window,num2str(STIMULI(trial)),'center',disp.ycenter+200,255);
-                timings(13) = Screen('Flip',window);
-                WaitSecs(TEMPDUR);
-            end
-            timings(14) = GetSecs;
-            timings(15) = timings(14) - timings(13);
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
-            %%% RATING
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            if USE_NETWORK; fwrite(connection,[trial,CONDITION,3,0],'double');  end
-            
-            txt = 'Please rate the intensity of your pain.\n\n Your partner will not see this rating.';
-            [timings(16) timings(17) timings(18) timings(19)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','Worst Pain Imaginable'},'txtSize',28);
-
-            if USE_NETWORK % Wait for signal from Computer 2 before proceeding
-                computer2_startsignal = WaitForInput(connection, [1,1], 1);
-            end
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
-            %%% ENDFIX
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            Screen('CopyWindow',disp.fixation.w,window);
-            timings(20) = Screen('Flip',window);
-            WaitSecs(FIXDUR(trial));
-            timings(21) = GetSecs;
-            timings(22) = timings(21) - timings(20);
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
-            % Append data to file after every trial
-            dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CONDITION) '.csv']), timings, 'delimiter',',','-append','precision',10)
-        end
-        
-    case 5  %Share Feeling Condition
-        for trial = 1:nTrials
-            %Record Data
-            %'Subject,Condition,Trial,Temperature,StimulationSite,ExperimentStart,CueOnset,CueOffset,CueDur,AnticipationOnset,AnticipationOffset,AnticipationDur,StimulationOnset,StimulusOffset,StimulationDur,RatingOnset,RatingOffset,RatingDur,Rating,FixationOnset,FixationOffset,FixationDur';
-            timings(1) = SUBID;
-            timings(2) = CONDITION;
-            timings(3) = trial;
-            timings(4) = STIMULI(trial);
-            timings(5) = SITES(trial);
-            timings(6) = startfix;
-            
-            %%% PRESTIMFIX
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            Screen('CopyWindow',disp.fixation.w,window);
-            timings(7) = Screen('Flip',window);
-            WaitSecs(FIXDUR(trial));
-            timings(8) = GetSecs;
-            timings(9) = timings(8) - timings(7);
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
-            %%% STIM
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            if USE_NETWORK; fwrite(connection,[trial,CONDITION,2,0],'double');  end
-            
-            if USE_BIOPAC; TriggerBiopac_io32(BIOPAC_PULSE_DUR); end
-            
-            if USE_THERMODE
-                % deliver thermal pain
-                timings(10) = TriggerHeat(STIMULI(trial));
-                WaitSecs(TEMPDUR)
-            else
-                Screen('CopyWindow',disp.nodevice.w,window);
-                Screen('TextSize',window,72);
-                DrawFormattedText(window,num2str(STIMULI(trial)),'center',disp.ycenter+200,255);
-                timings(10) = Screen('Flip',window);
-            end
-            WaitSecs(PAINDUR);
-            timings(11) = GetSecs;
-            timings(12) = timings(11) - timings(10);
-            
-            if USE_NETWORK % Send signal to stop stimulation screen to computer 2
-                fwrite(connection,222,'double')
-            end
-            WaitSecs(.2)
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
-            %%% Share how you are feeling
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
-            txt = 'Let your partner know how much pain you are feeling.\n\nThis is independent of your actual pain rating.';
-            [timings(13) timings(14) timings(15) timings(16)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','Worst Pain Imaginable'},'txtSize',28);
-
-            if USE_NETWORK; fwrite(connection,[trial,CONDITION,4, timings(16)],'double');  end
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
-            %%% RATING
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            if USE_NETWORK; fwrite(connection,[trial,CONDITION,3,0],'double');  end
-            
-            txt = 'Please rate the intensity of your pain.\n\n Your partner will not see this rating.';
-            [timings(17) timings(18) timings(19) timings(20)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','Worst Pain Imaginable'},'txtSize',28);
-
-            if USE_NETWORK % Wait for signal from Computer 2 before proceeding
-                computer2_startsignal = WaitForInput(connection, [1,1], 1);
-            end
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
-            %%% ENDFIX
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            Screen('CopyWindow',disp.fixation.w,window);
-            timings(21) = Screen('Flip',window);
-            WaitSecs(FIXDUR(trial));
-            timings(22) = GetSecs;
-            timings(23) = timings(22) - timings(21);
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
             % Append data to file after every trial
@@ -785,8 +630,8 @@ switch CONDITION
             randnum = rand;            % Generate random target value
             txt = ['Please set the rating to approximately ' num2str(round(randnum*100))];
             [timings(13) timings(14) timings(15) timings(16)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','Worst Pain Imaginable'},'txtSize',28);
-
-            if USE_NETWORK; fwrite(connection,[trial,CONDITION,8,randnum],'double'); end  %Send Rating to Partner
+            
+            if USE_NETWORK; fwrite(connection,[trial,CONDITION,4,randnum],'double'); end  %Send Rating to Partner
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
             %%% RATING
@@ -808,6 +653,161 @@ switch CONDITION
             WaitSecs(FIXDUR(trial));
             timings(22) = GetSecs;
             timings(23) = timings(22) - timings(21);
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+            % Append data to file after every trial
+            dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CONDITION) '.csv']), timings, 'delimiter',',','-append','precision',10)
+        end
+        
+    case 5  %Share Feeling Condition
+        for trial = 1:nTrials
+            %Record Data
+            %'Subject,Condition,Trial,Temperature,StimulationSite,ExperimentStart,CueOnset,CueOffset,CueDur,AnticipationOnset,AnticipationOffset,AnticipationDur,StimulationOnset,StimulusOffset,StimulationDur,RatingOnset,RatingOffset,RatingDur,Rating,FixationOnset,FixationOffset,FixationDur';
+            timings(1) = SUBID;
+            timings(2) = CONDITION;
+            timings(3) = trial;
+            timings(4) = STIMULI(trial);
+            timings(5) = SITES(trial);
+            timings(6) = startfix;
+            
+            %%% PRESTIMFIX
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            Screen('CopyWindow',disp.fixation.w,window);
+            timings(7) = Screen('Flip',window);
+            WaitSecs(FIXDUR(trial));
+            timings(8) = GetSecs;
+            timings(9) = timings(8) - timings(7);
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+            %%% STIM
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            if USE_NETWORK; fwrite(connection,[trial,CONDITION,2,0],'double');  end
+            
+            if USE_BIOPAC; TriggerBiopac_io32(BIOPAC_PULSE_DUR); end
+            
+            if USE_THERMODE
+                % deliver thermal pain
+                timings(10) = TriggerHeat(STIMULI(trial));
+                WaitSecs(TEMPDUR)
+            else
+                Screen('CopyWindow',disp.nodevice.w,window);
+                Screen('TextSize',window,72);
+                DrawFormattedText(window,num2str(STIMULI(trial)),'center',disp.ycenter+200,255);
+                timings(10) = Screen('Flip',window);
+            end
+            WaitSecs(PAINDUR);
+            timings(11) = GetSecs;
+            timings(12) = timings(11) - timings(10);
+            
+            if USE_NETWORK % Send signal to stop stimulation screen to computer 2
+                fwrite(connection,222,'double')
+            end
+            WaitSecs(.2)
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+            %%% Share how you are feeling
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+            txt = 'Let your partner know how much pain you are feeling.\n\nThis is independent of your actual pain rating.';
+            [timings(13) timings(14) timings(15) timings(16)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','Worst Pain Imaginable'},'txtSize',28);
+            
+            if USE_NETWORK; fwrite(connection,[trial,CONDITION,5, timings(16)],'double');  end
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+            %%% RATING
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            if USE_NETWORK; fwrite(connection,[trial,CONDITION,3,0],'double');  end
+            
+            txt = 'Please rate the intensity of your pain.\n\n Your partner will not see this rating.';
+            [timings(17) timings(18) timings(19) timings(20)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','Worst Pain Imaginable'},'txtSize',28);
+            
+            if USE_NETWORK % Wait for signal from Computer 2 before proceeding
+                computer2_startsignal = WaitForInput(connection, [1,1], 1);
+            end
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+            %%% ENDFIX
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            Screen('CopyWindow',disp.fixation.w,window);
+            timings(21) = Screen('Flip',window);
+            WaitSecs(FIXDUR(trial));
+            timings(22) = GetSecs;
+            timings(23) = timings(22) - timings(21);
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+            % Append data to file after every trial
+            dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CONDITION) '.csv']), timings, 'delimiter',',','-append','precision',10)
+        end
+        
+    case {6,7}  %Support and distraction trials
+        % trial loop
+        for trial = 1:nTrials
+            
+            %Record Data
+            %'Subject,Condition,Trial,Temperature,StimulationSite,ExperimentStart,CueOnset,CueOffset,CueDur,AnticipationOnset,AnticipationOffset,AnticipationDur,StimulationOnset,StimulusOffset,StimulationDur,RatingOnset,RatingOffset,RatingDur,Rating,FixationOnset,FixationOffset,FixationDur';
+            timings(1) = SUBID;
+            timings(2) = CONDITION;
+            timings(3) = trial;
+            timings(4) = STIMULI(trial);
+            timings(5) = SITES(trial);
+            timings(6) = startfix;
+            
+            %%% PRESTIMFIX
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            Screen('CopyWindow',disp.fixation.w,window);
+            timings(7) = Screen('Flip',window);
+            WaitSecs(FIXDUR(trial));
+            timings(8) = GetSecs;
+            timings(9) = timings(8) - timings(7);
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+            %%% Send start comfort signal on Computer 2 -  Continue Fixation
+            wait_time = TEMPDUR + COMFORTDUR;
+            if USE_NETWORK; fwrite(connection,[trial,CONDITION,CONDITION,wait_time],'double');  end
+            timings(10) = GetSecs;
+            WaitSecs(COMFORTDUR + .1);
+            timings(11) = GetSecs;
+            timings(12) = timings(11) - timings(10);
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+            %%% STIM
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            if USE_BIOPAC; TriggerBiopac_io32(BIOPAC_PULSE_DUR); end
+
+            if USE_THERMODE
+                % deliver thermal pain
+                timings(13) = TriggerHeat(STIMULI(trial));
+                WaitSecs(TEMPDUR)
+            else
+                Screen('CopyWindow',disp.nodevice.w,window);
+                Screen('TextSize',window,72);
+                DrawFormattedText(window,num2str(STIMULI(trial)),'center',disp.ycenter+200,255);
+                timings(13) = Screen('Flip',window);
+                WaitSecs(TEMPDUR);
+            end
+            timings(14) = GetSecs;
+            timings(15) = timings(14) - timings(13);
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+            %%% RATING
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            if USE_NETWORK; fwrite(connection,[trial,CONDITION,3,0],'double');  end
+            
+            txt = 'Please rate the intensity of your pain.\n\n Your partner will not see this rating.';
+            [timings(16) timings(17) timings(18) timings(19)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','Worst Pain Imaginable'},'txtSize',28);
+            
+            if USE_NETWORK % Wait for signal from Computer 2 before proceeding
+                computer2_startsignal = WaitForInput(connection, [1,1], 1);
+            end
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+            %%% ENDFIX
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            Screen('CopyWindow',disp.fixation.w,window);
+            timings(20) = Screen('Flip',window);
+            WaitSecs(FIXDUR(trial));
+            timings(21) = GetSecs;
+            timings(22) = timings(21) - timings(20);
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
             % Append data to file after every trial
