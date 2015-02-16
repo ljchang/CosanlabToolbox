@@ -203,6 +203,7 @@ if USE_NETWORK
     end
     
     % Send Signal to Computer 1 to proceed
+    WaitSecs(.2)
     fwrite(connection,1,'double')
 end
 
