@@ -191,11 +191,9 @@ ListenChar(1); %Start listening to keyboard again.
 % Select Condition to Run
 ListenChar(2); %Stop listening to keyboard
 Screen('TextSize',window, 28);
-DrawFormattedText(window,'Experimenter: Which condition do you want to run?\n\n0: Practice\n1: Alone\n2: Partner Behind Curtain\n3: Partner In View\n4: Share\n5: Partner Talk\n6: Hand Holding\n7: Practice\n8: Button\nq: Quit','center','center',255);
+DrawFormattedText(window,'Experimenter: Which condition do you want to run?\n\n0: Practice\n1: Alone\n2: Partner Behind Curtain\n3: Partner In View\n4: Button\n5:Share\n6: Distraction\n7: Partner Talk\n8: Hand Holding\n9: Alone\nq: Quit','center','center',255);
 Screen('Flip',window);
 keycode(key.q) = 0;
-keycode(30:39) = 0;
-% while keycode(key.zero)==0 && keycode(key.one) == 0 && keycode(key.two) == 0 && keycode(key.three) == 0 && keycode(key.four) == 0 && keycode(key.five) == 0 && keycode(key.six) == 0 && keycode(key.seven) == 0 && keycode(key.eight) == 0 && keycode(key.q) == 0
 while keycode(key.one)==0 && keycode(key.two)==0  && keycode(key.three)==0 && keycode(key.four)==0 && keycode(key.five)==0 && keycode(key.six)==0 && keycode(key.seven)==0 && keycode(key.eight)==0 && keycode(key.nine)==0 && keycode(key.q) == 0
     [presstime keycode delta] = KbWait;
 end
@@ -219,6 +217,8 @@ switch button
         CONDITION = 7;
     case key.eight
         CONDITION = 8;
+    case key.eight
+        CONDITION = 9;
     case key.q % ESC key quits the experiment
         Screen('CloseAll');
         ShowCursor;
