@@ -57,7 +57,7 @@ rand('state',sum(100*clock));
 USE_THERMODE = 1;       % refers to thermode make 0 if not running on computer with thermode
 USE_BIOPAC = 1;         % refers to Biopac make 0 if not running on computer with biopac
 USE_VIDEO = 0;          % record video of Run
-USE_NETWORK = 0;        % refers to Biopac make 0 if not running on computer with biopac
+USE_NETWORK = 1;        % refers to Biopac make 0 if not running on computer with biopac
 
 TRACKBALL_MULTIPLIER = 5;
 
@@ -270,25 +270,15 @@ if USE_BIOPAC
         error('if using windows, make sure io32 drivers are installed')
     end
     global BIOPAC_PORT;
-    BIOPAC_PORT = hex2dec('E050');
+    
+    % DIGITALIO doesn't work for CINC computer, using io32 instead for now.
     %    BIOPAC_PORT = digitalio('parallel','LPT2');
     %     addline(BIOPAC_PORT,0:7,'out');
+    
+    BIOPAC_PORT = hex2dec('E050');
+    
     BIOPAC_PULSE_DUR = 1; %% this counts as TIME
 end
-
-% if use_biopac
-%     [ignore hn] = system('hostname'); hn=deblank(hn);
-%     addpath(genpath('\Program Files\MATLAB\R2012b\Toolbox\io32'));
-%     global BIOPAC_PORT; %#ok
-%     if strcmp(hn,'INC-DELL-001')
-%         BIOPAC_PORT = hex2dec('E050');
-%         trigger_biopac = str2func('TriggerBiopac2');
-%     else
-%         BIOPAC_PORT = digitalio('parallel','LPT2');
-%         addline(BIOPAC_PORT,0:7,'out');
-%         trigger_biopac = str2func('TriggerBiopac');
-%     end
-% end
 
 if USE_VIDEO
     
@@ -329,11 +319,10 @@ if USE_NETWORK
         ipaddress = tmp{1}';
         fclose(fid);
         iptext = ['Set up network connection with laptop.\nIs this the correct IP Address from the laptop server? ' ipaddress '\n\n1 = "YES"\n\n2="NO"'];
-        Screen('TextSize',window, 29);
+        Screen('TextSize',window, 28);
         DrawFormattedText(window,iptext,'center','center',255);
         Screen('Flip',window);
-        keycode(key.one) = 0;
-        keycode(key.two) = 0;
+        keycode(key.one) = 0; keycode(key.two) = 0;
         while keycode(key.one) == 0 && keycode(key.two) == 0
             [presstime keycode delta] = KbWait;
         end
@@ -616,9 +605,12 @@ switch CONDITION
                         
             %%% STIM
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            if USE_BIOPAC; TriggerBiopac_io32(BIOPAC_PULSE_DUR); end
+
             if USE_THERMODE
                 % deliver thermal pain
                 timings(13) = TriggerHeat(STIMULI(trial),TEMPDUR);
+                WaitSecs(TEMPDUR)
             else
                 Screen('CopyWindow',disp.nodevice.w,window);
                 Screen('TextSize',window,72);
@@ -679,9 +671,12 @@ switch CONDITION
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if USE_NETWORK; fwrite(connection,[trial,CONDITION,2,0],'double');  end
             
+            if USE_BIOPAC; TriggerBiopac_io32(BIOPAC_PULSE_DUR); end
+            
             if USE_THERMODE
                 % deliver thermal pain
-                timings(10) = TriggerHeat(STIMULI(trial),TEMPDUR);
+                timings(10) = TriggerHeat(STIMULI(trial));
+                WaitSecs(TEMPDUR)
             else
                 Screen('CopyWindow',disp.nodevice.w,window);
                 Screen('TextSize',window,72);
@@ -756,9 +751,12 @@ switch CONDITION
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if USE_NETWORK; fwrite(connection,[trial,CONDITION,2,0],'double');  end
             
+            if USE_BIOPAC; TriggerBiopac_io32(BIOPAC_PULSE_DUR); end
+            
             if USE_THERMODE
                 % deliver thermal pain
-                timings(10) = TriggerHeat(STIMULI(trial),TEMPDUR);
+                timings(10) = TriggerHeat(STIMULI(trial));
+                WaitSecs(TEMPDUR)
             else
                 Screen('CopyWindow',disp.nodevice.w,window);
                 Screen('TextSize',window,72);
