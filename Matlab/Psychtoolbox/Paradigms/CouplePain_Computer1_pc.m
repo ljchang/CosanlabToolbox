@@ -32,6 +32,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Notes
+% 1) sending triggers in this paradigm only works on a 32bit windows 7
+% machine.  We use digitalio for the thermode and io32 for the biopac.  see
+% TriggerBiopac_io32 for more details.
+%
+% 2) Make sure that windows firewall is opened for port 30000, otherwise
+% will be unable to receive network communication.
 
 % Conditions
 % 1) Deliver Pain Trials (7?)
