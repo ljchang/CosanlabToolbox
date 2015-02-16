@@ -40,14 +40,15 @@
 % will be unable to receive network communication.
 
 % Conditions
-% 1) Deliver Pain Trials (7?)
+% 1) Pain with partner not in room
 % 2) Pain with parter in room but hidden
 % 3) pain with partner in room - can see and not talk
-% 4) pain with partner can share how feeling
-% 5) pain with partner can provide support
+% 4) pain with partner in room and press button after each pain (message sharing control)
+% 5) pain with partner can share how feeling
 % 6) pain with partner can talk only distraction
-% 7) pain with partner holding hand
-% 8) pain with no partner in room and press button after each pain (message sharing control)
+% 7) pain with partner can provide support
+% 8) pain with partner holding hand
+% 9) Pain with partner not in room
 
 %% GLOBAL PARAMETERS
 
@@ -94,7 +95,7 @@ CUEDUR = 1;
 ENDSCREENDUR = 3;
 STARTFIX = 1;
 TEMPDUR = 12;
-COMFORTDUR = 7;
+COMFORTDUR = 25;
 
 % Condition - will be function input
 % CONDITION = 4;
@@ -373,30 +374,30 @@ end
 switch CONDITION
     case 0 %practice trials
         instruct = 'We will now practice how to make ratings.\n\nYou will not be receiving any pain during practice.\n\nAfter each trial you will rate the intensity of the pain.\n\nPlease respond as honestly as you can.\n\nNobody else will be able to see your ratings.\n\n\nPress "spacebar" to continue.';
-    case 1,2,3 %Standard conditions
+    case 1,2,3,9 %Standard conditions
         instruct = 'In this condition you will receive several trials of heat stimulation.\n\nAfter each trial you will rate the intensity of the pain.\n\nPlease respond as honestly as you can.\n\nNobody else will be able to see your ratings.\n\n\nPress "spacebar" to continue.';
-    case 4 %Experience sharing
-        instruct = 'In this condition you will receive several trials of heat stimulation.\n\nAfter each trial you will be able to share how you are feeling with your partner.\n\nAfter you have sent your message, you will then rate the intensity of the pain.\n\nNobody else will be able to see these ratings.\n\nPress "spacebar" to continue.';
-    case 5,6
-        instruct = 'In this condition you will receive several trials of heat stimulation.\n\nYour partner can directly communicate with you during the pain stimulation.\n\nAfter each trial, you will then rate the intensity of the pain.\n\nNobody else will be able to see these ratings.\n\n\nPress "spacebar" to continue.';
-    case 7%Hand holding
-        instruct = 'In this condition you will receive several trials of heat stimulation.\n\nYour partner will be holding your hand during the stimulation.\n\nAfter each trial you will then rate the intensity of the pain.\n\nNobody else will be able to see these ratings.\n\n\nPress "spacebar" to continue.';
-    case 8 %Button press control
+    case 4 %Button press control
         instruct = 'In this condition you will receive several trials of heat stimulation.\n\nAfter each trial you will be be instructed to rate a specific number.\n\nAfter you have selected the rating, you will then rate the intensity of the pain.\n\nNobody else will be able to see these ratings.\n\n\nPress "spacebar" to continue.';
-end
+    case 5 %Experience sharing
+        instruct = 'In this condition you will receive several trials of heat stimulation.\n\nAfter each trial you will be able to share how you are feeling with your partner.\n\nAfter you have sent your message, you will then rate the intensity of the pain.\n\nNobody else will be able to see these ratings.\n\nPress "spacebar" to continue.';
+    case 6,7
+        instruct = 'In this condition you will receive several trials of heat stimulation.\n\nYour partner can directly communicate with you during the pain stimulation.\n\nAfter each trial, you will then rate the intensity of the pain.\n\nNobody else will be able to see these ratings.\n\n\nPress "spacebar" to continue.';
+    case 8%Hand holding
+        instruct = 'In this condition you will receive several trials of heat stimulation.\n\nYour partner will be holding your hand during the stimulation.\n\nAfter each trial you will then rate the intensity of the pain.\n\nNobody else will be able to see these ratings.\n\n\nPress "spacebar" to continue.';
+    end
 
 
 %% Run Script
 
 %Initialize File with Header
 switch CONDITION
-    case {1,2,3,7}
+    case {1,2,3,8,9}
         hdr = 'Subject,Condition,Trial,Temperature,StimulationSite,ExperimentStart,AnticipationOnset,AnticipationOffset,AnticipationDur,StimulationOnset,StimulusOffset,StimulationDur,RatingOnset,RatingOffset,RatingDur,Rating,FixationOnset,FixationOffset,FixationDur';
         timings = nan(1,19);
-    case {4,8}
+    case {4,5}
         hdr = 'Subject,Condition,Trial,Temperature,StimulationSite,ExperimentStart,AnticipationOnset,AnticipationOffset,AnticipationDur,StimulationOnset,StimulusOffset,StimulationDur,ShareFeelingOnset,ShareFeeling,Offset,ShareFeelingDur,ShareFeelingRating,RatingOnset,RatingOffset,RatingDur,Rating,FixationOnset,FixationOffset,FixationDur';
         timings = nan(1,23);
-    case {5,6}
+    case {6,7}
             hdr = 'Subject,Condition,Trial,Temperature,StimulationSite,ExperimentStart,TalkOnset,TalkOffset,TalkDur,ComfortWaitOnset,ComfortWaitOffset,ComfortWaitDur,StimulationOnset,StimulationOffset,StimulationDur,RatingOnset,RatingOffset,RatingDur,Rating,FixationOnset,FixationOffset,FixationDur';
         timings = nan(1,22);
 end
@@ -505,7 +506,7 @@ switch CONDITION
             dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CONDITION) '.csv']), timings, 'delimiter',',','-append','precision',10)
         end
         
-    case {1,2,3,7}  %Normal pain trials
+    case {1,2,3,8,9}  %Normal pain trials
         % trial loop
         for trial = 1:nTrials
             
@@ -578,7 +579,7 @@ switch CONDITION
             dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CONDITION) '.csv']), timings, 'delimiter',',','-append','precision',10)
         end
         
-    case {5,6}  %Support and distraction trials
+    case {6,7}  %Support and distraction trials
         % trial loop
         for trial = 1:nTrials
             
@@ -653,7 +654,7 @@ switch CONDITION
             dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CONDITION) '.csv']), timings, 'delimiter',',','-append','precision',10)
         end
         
-    case 4  %Share Feeling Condition
+    case 5  %Share Feeling Condition
         for trial = 1:nTrials
             %Record Data
             %'Subject,Condition,Trial,Temperature,StimulationSite,ExperimentStart,CueOnset,CueOffset,CueDur,AnticipationOnset,AnticipationOffset,AnticipationDur,StimulationOnset,StimulusOffset,StimulationDur,RatingOnset,RatingOffset,RatingDur,Rating,FixationOnset,FixationOffset,FixationDur';
@@ -733,7 +734,7 @@ switch CONDITION
             dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CONDITION) '.csv']), timings, 'delimiter',',','-append','precision',10)
         end
         
-    case 8  %Button Press Control Condition
+    case 4  %Button Press Control Condition
         for trial = 1:nTrials
             %Record Data
             %'Subject,Condition,Trial,Temperature,StimulationSite,ExperimentStart,CueOnset,CueOffset,CueDur,AnticipationOnset,AnticipationOffset,AnticipationDur,StimulationOnset,StimulusOffset,StimulationDur,RatingOnset,RatingOffset,RatingDur,Rating,FixationOnset,FixationOffset,FixationDur';
@@ -793,7 +794,7 @@ switch CONDITION
             if USE_NETWORK; fwrite(connection,[trial,CONDITION,3,0],'double');  end
             
             txt = 'Please rate the intensity of your pain.\n\n Your partner will not see this rating.';
-            [timings(17) timings(18) timings(19) timings(20)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','A Lot'});
+            [timings(17) timings(18) timings(19) timings(20)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','Worst Pain Imaginable'},'txtSize',28);
             
             if USE_NETWORK % Wait for signal from Computer 2 before proceeding
                 computer2_startsignal = WaitForInput(connection, [1], 1);
