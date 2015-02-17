@@ -56,6 +56,7 @@ clear all; close all; fclose all;
 if ismac %laptop
     fPath = '/Users/lukechang/Dropbox/RomanticCouples/CouplesParadigm';
     cosanlabToolsPath = '/Users/lukechang/Github/Cosanlabtoolbox/Matlab/Psychtoolbox';
+    Screen('Preference', 'SkipSyncTests', 1); % skip sync tests problems with yosemite
 elseif ispc %CINC Computer
     fPath = 'C:\Users\canlab\Desktop\RomanticCouple';
     cosanlabToolsPath = 'C:\Users\canlab\Documents\GitHub\CosanlabToolbox\Matlab\PsychToolbox';
@@ -68,8 +69,9 @@ rand('state',sum(100*clock));
 % Devices
 USE_THERMODE = 0;       % refers to thermode make 0 if not running on computer with thermode
 USE_BIOPAC = 0;         % refers to Biopac make 0 if not running on computer with biopac
-USE_VIDEO = 0;          % record video of Run
+USE_VIDEO = 0;          % record video of Run - Doesn't work on windows
 USE_NETWORK = 0;        % refers to Biopac make 0 if not running on computer with biopac
+USE_SOUND = 1;          % use sound to indicate start of video - useful for syncing video on windows
 
 TRACKBALL_MULTIPLIER = 5;
 
@@ -98,14 +100,13 @@ PAINDUR = 1;
 RATINGDUR = 1;
 CUEDUR = 1;
 ENDSCREENDUR = 3;
-STARTFIX = 1;
+STARTFIX = 4;
 TEMPDUR = 12;
 COMFORTDUR = 13;
 
 
 %% PREPARE DISPLAY
 % will break with error message if Screen() can't run
-%Screen('Preference', 'SkipSyncTests', 1);
 AssertOpenGL;
 
 % Get the screen numbers. This gives us a number for each of the screens
@@ -175,7 +176,7 @@ key.seven = KbName('7&');
 key.eight = KbName('8*');
 key.nine = KbName('9(');
 
-RestrictKeysForKbCheck([key.space, key.s, key.p, key.q, key.esc, key.one,key.two,key.three,key.four,key.five,key.six,key.seven,key.eight,key.nine]);
+RestrictKeysForKbCheck([key.space, key.s, key.p, key.q, key.esc, key.zero, key.one, key.two, key.three, key.four, key.five, key.six, key.seven, key.eight, key.nine]);
 
 %% Collect inputs
 
@@ -202,7 +203,7 @@ for k = 1:length(key_name)
 end
 
 % Wait for keypress
-while keycode(key.one)==0 && keycode(key.two)==0  && keycode(key.three)==0 && keycode(key.four)==0 && keycode(key.five)==0 && keycode(key.six)==0 && keycode(key.seven)==0 && keycode(key.eight)==0 && keycode(key.nine)==0 && keycode(key.q) == 0
+while keycode(key.zero)==0 && keycode(key.one)==0 && keycode(key.two)==0  && keycode(key.three)==0 && keycode(key.four)==0 && keycode(key.five)==0 && keycode(key.six)==0 && keycode(key.seven)==0 && keycode(key.eight)==0 && keycode(key.nine)==0 && keycode(key.q) == 0
     [presstime keycode delta] = KbWait;
 end
 button = find(keycode==1);
@@ -264,6 +265,17 @@ ListenChar(1); %Start listening to keyboard again.
 
 
 %% PREPARE DEVICES
+
+if USE_SOUND
+    % Set up audio playback
+    % See http://www.scottfraundorf.com/matlab_audio.html#pc 
+    InitializePsychSound(1); %inidializes sound driver...the 1 pushes for low latency
+	pahandle = PsychPortAudio('Open', [], 1, [], 44100, 2, [], 0.015);
+    [sounddata soundfreq] = audioread(fullfile(cosanlabToolsPath,'SupportFunctions','Sounds','Bell_E5_1000ms.wav')); % Load Sound
+	PsychPortAudio('FillBuffer', pahandle, sounddata');
+end
+
+
 
 if USE_THERMODE
     % set up thermode
@@ -376,6 +388,8 @@ if USE_NETWORK
 end
 
 
+
+
 %% Text for slides
 
 % %Instructions
@@ -433,6 +447,9 @@ keycode(key.space) = 0;
 while keycode(key.space) == 0
     [presstime keycode delta] = KbWait;
 end
+
+% Play Sound to sync video
+if USE_SOUND; PsychPortAudio('Start', pahandle); end  % 	PsychPortAudio('Stop', pahandle, 1); %will wait until sound stops otherwise will continue with experiment as soon as sound starts
 
 % Send Start signal to Computer 2
 if USE_NETWORK; fwrite(connection,111,'double'); end
