@@ -81,7 +81,7 @@ RATINGDUR = 1;
 CUEDUR = 1;
 ENDSCREENDUR = 3;
 STARTFIX = 1;
-FEEDBACKDUR = 0;  % Will wait for button press 
+FEEDBACKDUR = 3;
 
 %% PREPARE DISPLAY
 % % will break with error message if Screen() can't run
@@ -394,9 +394,6 @@ while t <= nTrials
             timings(12) = incoming_data(4);
             txt = 'This is the rating your partner was instructed to press.';
             [timings(13) timings(14) timings(15)] = ShowRating(timings(12), FEEDBACKDUR, window, rect, screenNumber, 'txt', txt, 'type','line','anchor',{'None','A Lot'},'txtSize',28);
-            
-            % Send trial data to Computer 1
-            fwrite(connection, 200,'double')
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
         case 5 %Share how partner is feeling :: Only for condition 5
@@ -407,9 +404,6 @@ while t <= nTrials
             txt = 'This is how your partner wanted you to know that they are feeling.';
             
             [timings(13) timings(14) timings(15)] = ShowRating(timings(12), FEEDBACKDUR, window, rect, screenNumber, 'txt', txt, 'type','line','anchor',{'None','A Lot'},'txtSize',28);
-            
-            % Send trial data to Computer 1
-            fwrite(connection, 200,'double')
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
         case 6 %Distract Your Partner :: Only for condition 6

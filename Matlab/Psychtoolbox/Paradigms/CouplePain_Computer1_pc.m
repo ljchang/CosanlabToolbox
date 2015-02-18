@@ -199,7 +199,7 @@ Screen('Flip',window);
 % Clear keys
 key_name = fieldnames(key);
 for k = 1:length(key_name)
-    keycode(key.(key_name{1}))=0;
+    keycode(key.(key_name{k}))=0;
 end
 
 % Wait for keypress
@@ -268,11 +268,15 @@ ListenChar(1); %Start listening to keyboard again.
 
 if USE_SOUND
     % Set up audio playback
-    % See http://www.scottfraundorf.com/matlab_audio.html#pc 
+    % See http://www.scottfraundorf.com/matlab_audio.html#pc
     InitializePsychSound(1); %inidializes sound driver...the 1 pushes for low latency
-	pahandle = PsychPortAudio('Open', [], 1, [], 44100, 2, [], 0.015);
+    if ismac %laptop
+        pahandle = PsychPortAudio('Open', [], 1, [], 44100, 2, [], 0.015);
+    elseif ispc %CINC Computer
+        pahandle = PsychPortAudio('Open', [], 1, [], 88200, 2, [], 0.015);
+    end
     [sounddata soundfreq] = audioread(fullfile(cosanlabToolsPath,'SupportFunctions','Sounds','Bell_E5_1000ms.wav')); % Load Sound
-	PsychPortAudio('FillBuffer', pahandle, sounddata');
+    PsychPortAudio('FillBuffer', pahandle, sounddata');
 end
 
 
@@ -356,7 +360,7 @@ if USE_NETWORK
         if keycode(key.one)
             %             return;
         else %IP address is incorrect
-            iptext = ['Set up network connection with laptop.\nPlease input the IP address from the laptop server (e.g. ' ipaddress ').'];
+            iptext = ['Please input the IP address from the laptop server (e.g. ' ipaddress ').'];
             ipaddress = GetEchoString(window, iptext, round(disp.screenWidth*.25), disp.ycenter, [255, 255, 255], [0, 0, 0],[]);
             WaitSecs(.2);
             Screen('Flip',window);
@@ -546,7 +550,7 @@ switch CONDITION
             
             %%% Instruct Thermode Placement
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            stim_text = ['Experimenter, please place thermode on site ' num2str(SITES(trial)) '\n\n\n\nPress ''Spacebar'' when ready to proceed']; 
+            stim_text = ['Experimenter, please place thermode on site ' num2str(SITES(trial)) '\n\n\n\nPress ''Spacebar'' when ready to proceed'];
             Screen('TextSize',window,28);
             DrawFormattedText(window,stim_text,'center',disp.ycenter,255);
             timings(7) = Screen('Flip',window);
@@ -630,9 +634,9 @@ switch CONDITION
             timings(5) = SITES(trial);
             timings(6) = startfix;
             
-                       %%% Instruct Thermode Placement
+            %%% Instruct Thermode Placement
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            stim_text = ['Experimenter, please place thermode on site ' num2str(SITES(trial)) '\n\n\n\nPress ''Spacebar'' when ready to proceed']; 
+            stim_text = ['Experimenter, please place thermode on site ' num2str(SITES(trial)) '\n\n\n\nPress ''Spacebar'' when ready to proceed'];
             Screen('TextSize',window,28);
             DrawFormattedText(window,stim_text,'center',disp.ycenter,255);
             timings(7) = Screen('Flip',window);
@@ -686,6 +690,11 @@ switch CONDITION
             [timings(16) timings(17) timings(18) timings(19)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','Worst Pain Imaginable'},'txtSize',28);
             
             if USE_NETWORK; fwrite(connection,[trial,CONDITION,4,randnum],'double'); end  %Send Rating to Partner
+            
+            % Wait for response from Computer 2
+            if USE_NETWORK; 
+                computer2_startsignal = WaitForInput(connection, [1,1], 3);
+            end
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
             %%% RATING
@@ -724,9 +733,9 @@ switch CONDITION
             timings(5) = SITES(trial);
             timings(6) = startfix;
             
-                       %%% Instruct Thermode Placement
+            %%% Instruct Thermode Placement
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            stim_text = ['Experimenter, please place thermode on site ' num2str(SITES(trial)) '\n\n\n\nPress ''Spacebar'' when ready to proceed']; 
+            stim_text = ['Experimenter, please place thermode on site ' num2str(SITES(trial)) '\n\n\n\nPress ''Spacebar'' when ready to proceed'];
             Screen('TextSize',window,28);
             DrawFormattedText(window,stim_text,'center',disp.ycenter,255);
             timings(7) = Screen('Flip',window);
@@ -781,6 +790,11 @@ switch CONDITION
             [timings(16) timings(17) timings(18) timings(19)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','Worst Pain Imaginable'},'txtSize',28);
             
             if USE_NETWORK; fwrite(connection,[trial,CONDITION,5, timings(19)],'double');  end
+            
+            % Wait for response from Computer 2
+            if USE_NETWORK; 
+                computer2_startsignal = WaitForInput(connection, [1,1], 3);
+            end
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
             %%% RATING
@@ -821,9 +835,9 @@ switch CONDITION
             timings(5) = SITES(trial);
             timings(6) = startfix;
             
-                       %%% Instruct Thermode Placement
+            %%% Instruct Thermode Placement
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            stim_text = ['Experimenter, please place thermode on site ' num2str(SITES(trial)) '\n\n\n\nPress ''Spacebar'' when ready to proceed']; 
+            stim_text = ['Experimenter, please place thermode on site ' num2str(SITES(trial)) '\n\n\n\nPress ''Spacebar'' when ready to proceed'];
             Screen('TextSize',window,28);
             DrawFormattedText(window,stim_text,'center',disp.ycenter,255);
             timings(7) = Screen('Flip',window);
@@ -856,7 +870,7 @@ switch CONDITION
             %%% STIM
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if USE_BIOPAC; TriggerBiopac_io32(BIOPAC_PULSE_DUR); end
-
+            
             if USE_THERMODE
                 % deliver thermal pain
                 timings(16) = TriggerHeat(STIMULI(trial));
@@ -881,7 +895,7 @@ switch CONDITION
             [timings(19) timings(20) timings(21) timings(22)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','Worst Pain Imaginable'},'txtSize',28);
             
             if USE_NETWORK % Wait for signal from Computer 2 before proceeding
-                computer2_startsignal = WaitForInput(connection, [1,1], 1);
+                computer2_startsignal = WaitForInput(connection, [1,1], 2);
             end
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             

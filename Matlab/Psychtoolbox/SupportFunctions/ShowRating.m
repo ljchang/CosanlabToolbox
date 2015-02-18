@@ -11,7 +11,8 @@ function [RatingOnset RatingOffset RatingDuration] = ShowRating(rating, screendu
 % Input:
 %
 % rating                    a vector of ratings to plot (e.g., [.2,.5]).
-% duration                  number of seconds to show rating
+% duration                  number of seconds to show rating.  If
+%                           screenduration = 0, then will require button press to continue
 % window                    Window ID of initial screen
 % rect                      1 x 4 matrix conatining the coordinates of
 %                           box of all pixels
@@ -90,8 +91,8 @@ if ~isempty(ip.Results.txt)
     txt = ip.Results.txt;
 end
 if length(ip.Results.anchor) > 1
-   show_anchor = 1;
-   anchor = ip.Results.anchor;
+    show_anchor = 1;
+    anchor = ip.Results.anchor;
 end
 if ~isempty(ip.Results.txtSize)
     txtSize = ip.Results.txtSize;
@@ -195,7 +196,7 @@ if img_type == 'line'
     Screen('DrawLines',window, line_array, 5,color_array);
 else %change size
     Screen('DrawLines',window, line_array, 4,color_array);
-%     Screen('DrawLine',window,rgb(i,:),cursor.x,cursor.y-(ceil(.107*(cursor.x-cursor.xmin)))-5,cursor.x,cursor.y+10,3);
+    %     Screen('DrawLine',window,rgb(i,:),cursor.x,cursor.y-(ceil(.107*(cursor.x-cursor.xmin)))-5,cursor.x,cursor.y+10,3);
 end
 
 if show_text
@@ -209,10 +210,15 @@ if show_anchor     %Show Anchor
     DrawFormattedText(window, anchor{1}, cursor.xmin - length(anchor{1})*10 - 40,cursor.y - 25, [255 255 255]);
     DrawFormattedText(window, anchor{2}, cursor.xmax + 25,cursor.y - 25, [255 255 255]);
 end
-    
+
 Screen('Flip',window);
 
-WaitSecs(screenduration);
+if screenduration == 0
+    [presstime keycode delta] = KbWait;
+else
+    WaitSecs(screenduration);
+end
+
 RatingOffset = GetSecs;
 RatingDuration = RatingOffset - RatingOnset;
 
