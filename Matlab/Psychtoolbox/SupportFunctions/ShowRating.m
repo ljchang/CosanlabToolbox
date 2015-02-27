@@ -29,6 +29,9 @@ function [RatingOnset RatingOffset RatingDuration] = ShowRating(rating, screendu
 % 'anchor'                  followed by cell array of low and high rating
 %                           anchors (e.g., {'None','A lot'}
 % 'txtSize'                 followed by size to display text
+% 'anchorSize'              followed by size to display anchor text
+% 'legend'                  followed by cell array of string to label
+%                           points on graph
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Output:
@@ -63,6 +66,7 @@ function [RatingOnset RatingOffset RatingDuration] = ShowRating(rating, screendu
 % Defaults
 show_text = 0;
 show_anchor = 0;
+show_legend = 0;
 
 % Parse Inputs
 ip = inputParser;
@@ -72,11 +76,13 @@ ip.addRequired('screenduration', @isnumeric);
 ip.addRequired('window', @isnumeric);
 ip.addRequired('rect', @isnumeric);
 ip.addRequired('screenNumber',@isnumeric);
-ip.addParameter('txt','');
+ip.addParameter('txt','',@isstr);
 checkType = @(t) any(strcmpi(t,{'line','linear','log'}));
 ip.addParameter('type','line',checkType);
-ip.addParameter('anchor',{''},@iscell);
-ip.addParameter('txtSize',@isnumeric)
+ip.addParameter('anchor',{},@iscell);
+ip.addParameter('txtSize',30,@isnumeric)
+ip.addParameter('anchorSize',20,@isnumeric)
+ip.addParameter('legend',{},@iscell)
 ip.parse(rating,screenduration,window, rect, screenNumber, varargin{:})
 rating = ip.Results.rating;
 screenduration = ip.Results.screenduration;
@@ -84,22 +90,27 @@ window  = ip.Results.window;
 rect  = ip.Results.rect;
 screenNumber  = ip.Results.screenNumber;
 img_type = ip.Results.type;
-anchor = ip.Results.anchor;
-txtSize = ip.Results.txtSize;
 if ~isempty(ip.Results.txt)
     show_text = 1;
     txt = ip.Results.txt;
 end
-if length(ip.Results.anchor) > 1
+if ~isempty(ip.Results.anchor)
     show_anchor = 1;
     anchor = ip.Results.anchor;
 end
 if ~isempty(ip.Results.txtSize)
     txtSize = ip.Results.txtSize;
-else
-    txtSize = 32;
 end
-
+if ~isempty(ip.Results.anchorSize)
+    anchorSize = ip.Results.anchorSize;
+end
+if ~isempty(ip.Results.legend)
+    leg = ip.Results.legend;
+    show_legend = 1;
+    if length(rating) ~= length(leg)
+        error('Make sure you enter a cell array of legend names that has the same number of elements as the rating vector.')
+    end
+end
 
 % Check that image is on path
 switch img_type
@@ -206,9 +217,16 @@ end
 
 if show_anchor     %Show Anchor
     %     Screen('TextFont', window, 'Helvetica Light');
-    Screen('TextSize', window, 20);
+    Screen('TextSize', window, anchorSize);
     DrawFormattedText(window, anchor{1}, cursor.xmin - length(anchor{1})*10 - 40,cursor.y - 25, [255 255 255]);
     DrawFormattedText(window, anchor{2}, cursor.xmax + 25,cursor.y - 25, [255 255 255]);
+end
+
+if show_legend      %Show legend
+    Screen('TextSize', window, txtSize);
+    for i = 1:length(leg)
+        DrawFormattedText(window, leg{i}, 'center',(rect(4)/2)+(i*txtSize)+80, rgb(i,:));
+    end
 end
 
 Screen('Flip',window);

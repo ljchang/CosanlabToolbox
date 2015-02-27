@@ -238,7 +238,7 @@ RestrictKeysForKbCheck([key.space, key.s, key.p, key.q, key.r, key.esc, 30:39]);
 
 % Enter Subject Information
 ListenChar(2); %Stop listening to keyboard
-Screen('TextSize',window, 30);
+Screen('TextSize',window, 36);
 SUBID = GetEchoString(window, 'Experimenter: Please enter subject ID: ', round(disp.screenWidth*.25), disp.ycenter, [255, 255, 255], [0, 0, 0],[]);
 SUBID = str2num(SUBID);
 Screen('FillRect',window,screenNumber); % paint black
@@ -462,7 +462,7 @@ while trial <= length(q)
         amt = 3;
     end
     
-    [timings(13) timings(14) timings(15)] = ShowRating([timings(11), timings(12)], feedbackDur, window, rect, screenNumber, 'txt', ['\n\n' qfbck{trial,amt}], 'type','line', 'anchor', anchor{trial},'txtSize',txtSize,'anchorSize',anchorSize,'legend',{'You','Other mothers'});
+    [timings(13) timings(14) timings(15)] = ShowRating([timings(11), timings(12)], feedbackDur, window, rect, screenNumber, 'txt', [qfbck{trial,amt}], 'type','line', 'anchor', anchor{trial},'txtSize',txtSize,'anchorSize',anchorSize,'legend',{'You','Other mothers'});
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     

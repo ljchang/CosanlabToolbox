@@ -76,10 +76,11 @@ USE_SOUND = 1;          % use sound to indicate start of video - useful for sync
 TRACKBALL_MULTIPLIER = 5;
 
 % Number of Skin Sites
-nSites = 5;
+nSites = 4;
 
 % PAIN: set temps for thermode
 TEMPERATURES = [48];
+PRACTICE_TEMP = 47;
 
 % Number of trials
 nTrials = nSites * length(TEMPERATURES);
@@ -399,7 +400,8 @@ end
 % %Instructions
 switch CONDITION
     case 0 %practice trials
-        instruct = 'We will now practice how to make ratings.\n\nYou will not be receiving any pain during practice.\n\nAfter each trial you will rate the intensity of the pain.\n\nPlease respond as honestly as you can.\n\nNobody else will be able to see your ratings.\n\n\nPress "spacebar" to continue.';
+        instruct1 = 'We will now practice how to make ratings.\n\nYou will not be receiving any pain during practice.\n\nAfter each trial you will rate the intensity of the pain.\n\nPlease respond as honestly as you can.\n\nNobody else will be able to see your ratings.\n\n\nPress "spacebar" to continue.';
+        instruct2 = 'We will now practice how to make ratings.\n\nYou will not be receiving any pain during practice.\n\nAfter each trial you will rate the intensity of the pain.\n\nPlease respond as honestly as you can.\n\nNobody else will be able to see your ratings.\n\n\nPress "spacebar" to continue.';
     case {1,2,3,9} %Standard conditions
         instruct = 'In this condition you will receive several trials of heat stimulation.\n\nAfter each trial you will rate the intensity of the pain.\n\nPlease respond as honestly as you can.\n\nNobody else will be able to see your ratings.\n\n\nPress "spacebar" to continue.';
     case 4 %Button press control
@@ -473,7 +475,7 @@ WaitSecs(STARTFIX);
 
 switch CONDITION
     case 0 % Practice trials
-        for trial = 1:2
+        for trial = 1:l
             %Record Data
             %'Subject,Condition,Trial,Temperature,StimulationSite,ExperimentStart,CueOnset,CueOffset,CueDur,AnticipationOnset,AnticipationOffset,AnticipationDur,StimulationOnset,StimulusOffset,StimulationDur,RatingOnset,RatingOffset,RatingDur,Rating,FixationOnset,FixationOffset,FixationDur';
             timings(1) = SUBID;
