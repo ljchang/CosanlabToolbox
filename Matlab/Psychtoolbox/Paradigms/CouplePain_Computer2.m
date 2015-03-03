@@ -83,6 +83,10 @@ ENDSCREENDUR = 3;
 STARTFIX = 1;
 FEEDBACKDUR = 0;  % Will wait for button press 
 
+% Settings
+text_size = 28;
+anchor_size = 20;
+
 %% PREPARE DISPLAY
 % % will break with error message if Screen() can't run
 
@@ -375,7 +379,7 @@ while t <= nTrials
             %%% RATING
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             txt = 'Please rate how bad you feel.\n\n Your partner will not see this rating.';
-            [timings(8) timings(9) timings(10) timings(11)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','A Lot'},'txtSize',32);
+            [timings(8) timings(9) timings(10) timings(11)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','A Lot'},'txtSize',text_size,'anchorSize',anchor_size);
             
             % Send trial data to Computer 1
             fwrite(connection, 222,'double')
@@ -392,8 +396,8 @@ while t <= nTrials
             %%% Show Button press
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             timings(12) = incoming_data(4);
-            txt = 'This is the rating your partner was instructed to press.';
-            [timings(13) timings(14) timings(15)] = ShowRating(timings(12), FEEDBACKDUR, window, rect, screenNumber, 'txt', txt, 'type','line','anchor',{'None','A Lot'},'txtSize',28);
+            txt = 'This is the rating your partner was instructed to press.\n\n\n\n\n\n\n\n\n\n\n\n\n\nPress ''Spacebar'' when ready to proceed';
+            [timings(13) timings(14) timings(15)] = ShowRating(timings(12), FEEDBACKDUR, window, rect, screenNumber, 'txt', txt, 'type','line','anchor',{'None','A Lot'},'txtSize',text_size,'anchorSize',anchor_size);
             
             % Send trial data to Computer 1
             fwrite(connection, 200,'double')
@@ -404,10 +408,10 @@ while t <= nTrials
             %%% Share Feeling
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             timings(12) = incoming_data(4);
-            txt = 'This is how your partner wanted you to know that they are feeling.';
+            txt = 'This is how your partner wanted you to know that they are feeling.\n\n\n\n\n\n\n\n\n\n\n\n\n\nPress ''Spacebar'' when ready to proceed';
             
-            [timings(13) timings(14) timings(15)] = ShowRating(timings(12), FEEDBACKDUR, window, rect, screenNumber, 'txt', txt, 'type','line','anchor',{'None','A Lot'},'txtSize',28);
-            
+            [timings(13) timings(14) timings(15)] = ShowRating(timings(12), FEEDBACKDUR, window, rect, screenNumber, 'txt', txt, 'type','line','anchor',{'None','A Lot'},'txtSize',text_size,'anchorSize',anchor_size);
+   
             % Send trial data to Computer 1
             fwrite(connection, 200,'double')
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
