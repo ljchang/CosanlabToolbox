@@ -268,7 +268,7 @@ ListenChar(1); %Start listening to keyboard again.
 % %Instructions
 switch CONDITION
     case 0 %practice trials
-        instruct = 'We will now practice how to make ratings.\n\nYour partner will receive several trials of heat stimulation while we calibrate the thermode.\n\nAfter each trial you will how bad you feel.\n\nPlease respond as honestly as you can.\n\nNobody else will be able to see your ratings.\n\n\nPress "spacebar" to continue.';
+        instruct = 'We will now practice how to make ratings.\n\nYour partner will receive several trials of heat stimulation\n\nAfter each trial you will how bad you feel.\n\nPlease respond as honestly as you can.\n\nNobody else will be able to see your ratings.\n\n\nPress "spacebar" to continue.';
     case {1,2,3,9} %Standard conditions
         instruct = 'In this condition your partner will receive several trials of heat stimulation.\n\nAfter each trial you will rate how bad you feel.\n\nPlease respond as honestly as you can.\n\nNobody else will be able to see your ratings.\n\n\nPress "spacebar" to continue.';
     case 4 %Button press control
