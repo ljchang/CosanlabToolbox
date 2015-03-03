@@ -70,7 +70,11 @@ classdef image_data
                             else
                                 error('File does not exist. Make sure you enter a valid data file.')
                             end
+                            
+                        else
+                            data_tmp = data{i};
                         end
+                        
                         obj.dat(:,i) = data_tmp(:);
                         obj.transformation = size(data_tmp);
                     end
