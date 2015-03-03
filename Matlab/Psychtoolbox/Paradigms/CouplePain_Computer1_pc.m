@@ -60,6 +60,7 @@ if ismac %laptop
 elseif ispc %CINC Computer
     fPath = 'C:\Users\canlab\Desktop\RomanticCouple';
     cosanlabToolsPath = 'C:\Users\canlab\Documents\GitHub\CosanlabToolbox\Matlab\PsychToolbox';
+%     Screen('Preference', 'SkipSyncTests', 1); % skip sync tests problems with yosemite
 end
 addpath(genpath(fullfile(cosanlabToolsPath,'SupportFunctions')));
 
@@ -105,6 +106,9 @@ STARTFIX = 4;
 TEMPDUR = 12;
 COMFORTDUR = 13;
 
+% Settings
+text_size = 28;
+anchor_size = 20;
 
 %% PREPARE DISPLAY
 % will break with error message if Screen() can't run
@@ -116,8 +120,8 @@ screens = Screen('Screens');
 screenNumber = max(screens);
 
 % Prepare the screen
-[window rect] = Screen('OpenWindow',screenNumber);
-% [window rect] = Screen('OpenWindow', screenNumber, 0, [0 0 1200 700]);
+% [window rect] = Screen('OpenWindow',screenNumber);
+[window rect] = Screen('OpenWindow', screenNumber, 0, [0 0 1200 700]);
 Screen('fillrect', window, screenNumber);
 % HideCursor;
 
@@ -274,7 +278,7 @@ if USE_SOUND
     if ismac %laptop
         pahandle = PsychPortAudio('Open', [], 1, [], 44100, 2, [], 0.015);
     elseif ispc %CINC Computer
-        pahandle = PsychPortAudio('Open', [], 1, [], 88200, 2, [], 0.015);
+        pahandle = PsychPortAudio('Open', [], 1, [], 44100, 2, [], 0.015);
     end
     [sounddata soundfreq] = audioread(fullfile(cosanlabToolsPath,'SupportFunctions','Sounds','Bell_E5_1000ms.wav')); % Load Sound
     PsychPortAudio('FillBuffer', pahandle, sounddata');
@@ -517,7 +521,7 @@ switch CONDITION
             if USE_NETWORK; fwrite(connection,[trial,CONDITION,3,0],'double');  end
             
             txt = 'Please rate the intensity of your pain.\n\n Your partner will not see this rating.';
-            [timings(13) timings(14) timings(15) timings(16)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','Worst Pain Imaginable'},'txtSize',28);
+            [timings(13) timings(14) timings(15) timings(16)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','Worst Pain Imaginable'},'txtSize',text_size,'anchorSize',anchor_size);
             
             if USE_NETWORK % Wait for signal from Computer 2 before proceeding
                 computer2_timings = WaitForInput(connection,[1], 1);
@@ -605,7 +609,7 @@ switch CONDITION
             if USE_NETWORK; fwrite(connection,[trial,CONDITION,3,0],'double');  end
             
             txt = 'Please rate the intensity of your pain.\n\n Your partner will not see this rating.';
-            [timings(16) timings(17) timings(18) timings(19)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','Worst Pain Imaginable'},'txtSize',28);
+            [timings(16) timings(17) timings(18) timings(19)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','Worst Pain Imaginable'},'txtSize',text_size,'anchorSize',anchor_size);
             
             if USE_NETWORK % Wait for signal from Computer 2 before proceeding
                 computer2_startsignal = WaitForInput(connection, [1,1], 1);
@@ -689,7 +693,7 @@ switch CONDITION
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             randnum = rand;            % Generate random target value
             txt = ['Please set the rating to approximately ' num2str(round(randnum*100))];
-            [timings(16) timings(17) timings(18) timings(19)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','Worst Pain Imaginable'},'txtSize',28);
+            [timings(16) timings(17) timings(18) timings(19)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','Worst Pain Imaginable'},'txtSize',text_size,'anchorSize',anchor_size);
             
             if USE_NETWORK; fwrite(connection,[trial,CONDITION,4,randnum],'double'); end  %Send Rating to Partner
             
@@ -704,7 +708,7 @@ switch CONDITION
             if USE_NETWORK; fwrite(connection,[trial,CONDITION,3,0],'double');  end
             
             txt = 'Please rate the intensity of your pain.\n\n Your partner will not see this rating.';
-            [timings(20) timings(21) timings(22) timings(23)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','Worst Pain Imaginable'},'txtSize',28);
+            [timings(20) timings(21) timings(22) timings(23)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','Worst Pain Imaginable'},'txtSize',text_size,'anchorSize',anchor_size);
             
             if USE_NETWORK % Wait for signal from Computer 2 before proceeding
                 computer2_startsignal = WaitForInput(connection, [1], 1);
@@ -789,7 +793,7 @@ switch CONDITION
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
             txt = 'Let your partner know how much pain you are feeling.\n\nThis is independent of your actual pain rating.';
-            [timings(16) timings(17) timings(18) timings(19)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','Worst Pain Imaginable'},'txtSize',28);
+            [timings(16) timings(17) timings(18) timings(19)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','Worst Pain Imaginable'},'txtSize',text_size,'anchorSize',anchor_size);
             
             if USE_NETWORK; fwrite(connection,[trial,CONDITION,5, timings(19)],'double');  end
             
@@ -804,7 +808,7 @@ switch CONDITION
             if USE_NETWORK; fwrite(connection,[trial,CONDITION,3,0],'double');  end
             
             txt = 'Please rate the intensity of your pain.\n\n Your partner will not see this rating.';
-            [timings(20) timings(21) timings(22) timings(23)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','Worst Pain Imaginable'},'txtSize',28);
+            [timings(20) timings(21) timings(22) timings(23)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','Worst Pain Imaginable'},'txtSize',text_size,'anchorSize',anchor_size);
             
             if USE_NETWORK % Wait for signal from Computer 2 before proceeding
                 computer2_startsignal = WaitForInput(connection, [1,1], 1);
@@ -894,7 +898,7 @@ switch CONDITION
             if USE_NETWORK; fwrite(connection,[trial,CONDITION,3,0],'double');  end
             
             txt = 'Please rate the intensity of your pain.\n\n Your partner will not see this rating.';
-            [timings(19) timings(20) timings(21) timings(22)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','Worst Pain Imaginable'},'txtSize',28);
+            [timings(19) timings(20) timings(21) timings(22)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','Worst Pain Imaginable'},'txtSize',text_size,'anchorSize',anchor_size);
             
             if USE_NETWORK % Wait for signal from Computer 2 before proceeding
                 computer2_startsignal = WaitForInput(connection, [1,1], 2);
