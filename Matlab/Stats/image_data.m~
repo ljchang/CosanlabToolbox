@@ -36,42 +36,49 @@ classdef image_data
     end
     
     methods
-        function obj = image_data(data)
+        function obj = image_data(varargin)
             class constructor
             
             % check data type
-            if ~isnumeric(data) && size(data,1) < 2 && size(data,2) < 2 % matrix
-                error('Make sure that you are inputting a numeric matrix')
-            elseif isstr(data) %load image if string
-                f_exist = exist(data);
-                if f_exist == 2
-                    data = dlmread(data);
-                    
+            if nargin == 0
+                obj.dat = [];
+            else
+                
+                data = varargin{1};
+                
+                if ~isnumeric(data) && size(data,1) < 2 && size(data,2) < 2 % matrix
+                    error('Make sure that you are inputting a numeric matrix')
+                elseif isstr(data) %load image if string
+                    f_exist = exist(data);
+                    if f_exist == 2
+                        data = dlmread(data);
+                        
+                        % transform data into vector
+                        obj.dat = data(:);
+                        obj.transformation = size(data);
+                    else
+                        error('File does not exist. Make sure you enter a valid data file.')
+                    end
+                elseif iscell(data)
+                    for i = 1:length(data)
+                        if ~isnumeric(data{i}) && size(data{i},1) < 2 && size(data{i},2) < 2 % matrix
+                            error('Make sure that you are inputting a numeric matrix')
+                        elseif isstr(data{i}) %load image if string, might need to check if matrix file
+                            f_exist = exist(data{i});
+                            if f_exist ==2
+                                data_tmp = dlmread(data{i});
+                            else
+                                error('File does not exist. Make sure you enter a valid data file.')
+                            end
+                        end
+                        obj.dat(:,i) = data_tmp(:);
+                        obj.transformation = size(data_tmp);
+                    end
+                else %matrix
                     % transform data into vector
                     obj.dat = data(:);
                     obj.transformation = size(data);
-                else
-                    error('File does not exist. Make sure you enter a valid data file.')
                 end
-            elseif iscell(data)
-                for i = 1:length(data)
-                    if ~isnumeric(data{i}) && size(data{i},1) < 2 && size(data{i},2) < 2 % matrix
-                        error('Make sure that you are inputting a numeric matrix')
-                    elseif isstr(data{i}) %load image if string, might need to check if matrix file
-                        f_exist = exist(data{i});
-                        if f_exist ==2
-                            data_tmp = dlmread(data{i});
-                        else
-                            error('File does not exist. Make sure you enter a valid data file.')
-                        end
-                    end
-                    obj.dat(:,i) = data_tmp(:);
-                    obj.transformation = size(data_tmp);
-                end
-            else %matrix
-                % transform data into vector
-                obj.dat = data(:);
-                obj.transformation = size(data);
             end
             
             % populate fields
@@ -80,9 +87,25 @@ classdef image_data
             obj.fname = [];
         end
         
+        function matrix2d = oned2twod(obj,varargin)
+            % matrix2d = oned2twod(obj)
+            % -------------------------------------------------------------------
+            % This function converts 1-D image_data object to 2-D matrix
+            % -------------------------------------------------------------------
+            % Optional Input:
+            % image number:             Image number to plot (i.e., column)
+            % -------------------------------------------------------------------
+            
+                        if nargin > 1
+
+            matrix2d = reshape(obj.dat(:,1),obj.transformation);
+
+                        end
+        end
+        
         function obj = plot(obj, varargin)
             % obj = plot(obj, image_number)
-            %
+            % -------------------------------------------------------------------
             % This function plots the data in matrix form
             % -------------------------------------------------------------------
             % Optional Input:
@@ -104,10 +127,11 @@ classdef image_data
         
         function obj = write(obj,varargin)
             % obj = write(obj,file_name)
-            %
+            % -------------------------------------------------------------------
             % write out object to file.  Will use input file name,
             % otherwise obj.fname.  If there are multiple images, then will
             % write out a separate file for each image (enumerated '_1' ... '_n').
+            % -------------------------------------------------------------------
             
             if nargin > 1
                 obj.fname = varargin{1};
@@ -119,15 +143,15 @@ classdef image_data
                     dlmwrite([tmp_name{1} '_' num2str(i) '.' tmp_name{2}],reshape(obj.dat(:,i),obj.transformation))
                 end
             else
-                dlmwrite(obj.fname,reshape(obj.dat,obj.transformation))
+                dlmwrite(obj.fname,oned2twod(obj))
             end
         end
         
         function stats = regress(obj, varargin)
             % [stats] = regress(obj, Y)
-            %
+            % -------------------------------------------------------------------
             % Regress obj.Y on obj.dat
-            %
+            % -------------------------------------------------------------------
             % Optional inputs
             % -------------------------------------------------------------------
             % 'robust'          : use robust regression
@@ -141,7 +165,6 @@ classdef image_data
             % sigma             : sigma (variance of residual)
             % df                : degrees of freedom
             % -------------------------------------------------------------------
-            
             
             % Defaults
             doRobust = 0;
@@ -222,8 +245,9 @@ classdef image_data
         
         function mn_obj = mean(obj)
             % obj = mean(obj)
-            %
+            % -------------------------------------------------------------------
             % Returns mean of image_data() object
+            % -------------------------------------------------------------------
             
             mn_obj = obj;
             mn_obj.dat = mean(obj.dat,2);
@@ -231,9 +255,11 @@ classdef image_data
         
         function dim = size(obj, varargin)
             % dim = size(obj, varargin)
-            %
+            % -------------------------------------------------------------------
             % Return dimensions of image_data
+            % -------------------------------------------------------------------
             % Optional Input: Indicate Dimension(row = 1 or column = 2)
+            % -------------------------------------------------------------------
             
             if nargin > 1
                 dim = size(obj.dat, varargin{1});
@@ -242,18 +268,17 @@ classdef image_data
             end
         end
         
-         function c = horzcat(varargin)
+        function c = horzcat(varargin)
             % function c = horzcat(varargin)
             % -------------------------------------------------------------------
-            % Implements the horzcat ([a b]) operator on design_matrix objects across variables.
+            % Implements the horzcat ([a b]) operator on image_data objects across variables.
             % Requires that each object has an equal number of rows
             % -------------------------------------------------------------------
             % Examples:
-            % c = [dm1 dm2];
+            % c = [obj1 obj2];
             % -------------------------------------------------------------------
             
             %check if number of rows is the same
-                        %check if varnames are the same
             nrow = [];
             for i = 1:nargin
                 nrow(i) = size(varargin{i},1);
@@ -261,27 +286,23 @@ classdef image_data
             for i = 1:nargin
                 for j = 1:nargin
                     if nrow(i)~=nrow(j)
-                        error('objects have a different number of rows')
+                        error('Objects have a different number of rows')
                     end
                 end
             end
             
             dat = [];
-            varname = [];
             for i = 1:nargin
-                    %Check if design_matrix object
-                if ~isa(varargin{i}, 'design_matrix')
-                    error('Input Data is not an design_matrix object')
+                %Check if image_data object
+                if ~isa(varargin{i}, 'image_data')
+                    error('Input Data is not an image_data() object')
                 end
-                
                 dat = [dat, varargin{i}.dat];
-                varname = [varname, varargin{i}.varname];
             end
             
             c = varargin{1};
             c.dat = dat;
-            c.varname = varname;
-         end
+        end
         
     end
 end

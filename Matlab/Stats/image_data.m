@@ -6,7 +6,7 @@ classdef image_data
     % working with images, or matrices.
     %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Copyright (c) 2014 Luke Chang
+    % Copyright (c) 2015 Luke Chang
     %
     % Permission is hereby granted, free of charge, to any person obtaining a
     % copy of this software and associated documentation files (the "Software"),
@@ -36,48 +36,78 @@ classdef image_data
     end
     
     methods
-        function obj = image_data(data)
+        function obj = image_data(varargin)
             class constructor
             
             % check data type
-            if ~isnumeric(data) && size(data,1) < 2 && size(data,2) < 2 % matrix
-                error('Make sure that you are inputting a numeric matrix')
-            elseif isstr(data) %load image if string
-                f_exist = exist(data);
-                if f_exist == 2
-                    data = dlmread(data);
-                    
+            if nargin == 0
+                obj.dat = [];
+            else
+                
+                data = varargin{1};
+                
+                if ~isnumeric(data) && size(data,1) < 2 && size(data,2) < 2 % matrix
+                    error('Make sure that you are inputting a numeric matrix')
+                elseif isstr(data) %load image if string
+                    f_exist = exist(data);
+                    if f_exist == 2
+                        data = dlmread(data);
+                        
+                        % transform data into vector
+                        obj.dat = data(:);
+                        obj.transformation = size(data);
+                    else
+                        error('File does not exist. Make sure you enter a valid data file.')
+                    end
+                elseif iscell(data)
+                    for i = 1:length(data)
+                        if ~isnumeric(data{i}) && size(data{i},1) < 2 && size(data{i},2) < 2 % matrix
+                            error('Make sure that you are inputting a numeric matrix')
+                        elseif isstr(data{i}) %load image if string, might need to check if matrix file
+                            f_exist = exist(data{i});
+                            if f_exist ==2
+                                data_tmp = dlmread(data{i});
+                            else
+                                error('File does not exist. Make sure you enter a valid data file.')
+                            end
+                        end
+                        obj.dat(:,i) = data_tmp(:);
+                        obj.transformation = size(data_tmp);
+                    end
+                else %matrix
                     % transform data into vector
                     obj.dat = data(:);
                     obj.transformation = size(data);
-                else
-                    error('File does not exist. Make sure you enter a valid data file.')
                 end
-            elseif iscell(data)
-                for i = 1:length(data)
-                    if ~isnumeric(data{i}) && size(data{i},1) < 2 && size(data{i},2) < 2 % matrix
-                        error('Make sure that you are inputting a numeric matrix')
-                    elseif isstr(data{i}) %load image if string, might need to check if matrix file
-                        f_exist = exist(data{i});
-                        if f_exist ==2
-                            data_tmp = dlmread(data{i});
-                        else
-                            error('File does not exist. Make sure you enter a valid data file.')
-                        end
-                    end
-                    obj.dat(:,i) = data_tmp(:);
-                    obj.transformation = size(data_tmp);
-                end
-            else %matrix
-                % transform data into vector
-                obj.dat = data(:);
-                obj.transformation = size(data);
             end
             
             % populate fields
             obj.Y = [];
             obj.X = [];
             obj.fname = [];
+        end
+        
+        function matrix2d = oned2twod(obj,varargin)
+            % matrix2d = oned2twod(obj)
+            % -------------------------------------------------------------------
+            % This function converts 1-D image_data object to 2-D matrix.
+            % Will output cell array if multiple data.
+            % -------------------------------------------------------------------
+            % Optional Input:
+            % image number:             Image number to plot (i.e., column)
+            % -------------------------------------------------------------------
+            
+            if nargin > 1
+                matrix2d = reshape(obj.dat(:,varargin{1}),obj.transformation);
+            else
+                if size(obj,2) > 1
+                    for i = 1:size(obj,2)
+                       matrix2d{i} =  reshape(obj.dat(:,i),obj.transformation);
+                    end
+                else
+                    matrix2d = reshape(obj.dat,obj.transformation);
+                end
+            end
         end
         
         function obj = plot(obj, varargin)
@@ -91,12 +121,12 @@ classdef image_data
             
             figure;
             if nargin > 1
-                imagesc(reshape(obj.dat(:,varargin{1}),obj.transformation))
+                imagesc(oned2twod(obj,varargin{1}))
             elseif size(obj.dat,2) > 1
                 sprintf('Warning: more than one datafile, plotting the first image for now. Please select which image to use.')
-                imagesc(reshape(obj.dat(:,1),obj.transformation))
+                imagesc(oned2twod(obj,1))
             else
-                imagesc(reshape(obj.dat,obj.transformation))
+                imagesc(oned2twod(obj))
             end
             colorbar
             
@@ -109,7 +139,7 @@ classdef image_data
             % otherwise obj.fname.  If there are multiple images, then will
             % write out a separate file for each image (enumerated '_1' ... '_n').
             % -------------------------------------------------------------------
-
+            
             if nargin > 1
                 obj.fname = varargin{1};
             end
@@ -117,10 +147,10 @@ classdef image_data
             if size(obj.dat,2)>1
                 for i = 1:size(obj.dat,2)
                     tmp_name = strsplit(obj.fname,'.');
-                    dlmwrite([tmp_name{1} '_' num2str(i) '.' tmp_name{2}],reshape(obj.dat(:,i),obj.transformation))
+                    dlmwrite([tmp_name{1} '_' num2str(i) '.' tmp_name{2}],oned2twod(obj,i))
                 end
             else
-                dlmwrite(obj.fname,reshape(obj.dat,obj.transformation))
+                dlmwrite(obj.fname,oned2twod(obj))
             end
         end
         
@@ -142,7 +172,6 @@ classdef image_data
             % sigma             : sigma (variance of residual)
             % df                : degrees of freedom
             % -------------------------------------------------------------------
-            
             
             % Defaults
             doRobust = 0;

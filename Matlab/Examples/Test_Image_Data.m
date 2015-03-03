@@ -1,4 +1,6 @@
 %% Test image_data() Class
+% This script tests the functionality of the image_data() class
+% Written by Luke Chang 3/2015
 
 % initialize data - matrix
 data = rand(100,25); 
@@ -48,7 +50,9 @@ c = [mn dat];
 size(dat)
 size(dat,1)
 
-
+% Convert to 2D matrix
+matrix2d = oned2twod(dat,1);
+matrix2d = oned2twod(dat);
 
 
 
