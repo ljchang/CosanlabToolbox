@@ -82,7 +82,7 @@ classdef image_data
         
         function obj = plot(obj, varargin)
             % obj = plot(obj, image_number)
-            %
+            % -------------------------------------------------------------------
             % This function plots the data in matrix form
             % -------------------------------------------------------------------
             % Optional Input:
@@ -104,11 +104,12 @@ classdef image_data
         
         function obj = write(obj,varargin)
             % obj = write(obj,file_name)
-            %
+            % -------------------------------------------------------------------
             % write out object to file.  Will use input file name,
             % otherwise obj.fname.  If there are multiple images, then will
             % write out a separate file for each image (enumerated '_1' ... '_n').
-            
+            % -------------------------------------------------------------------
+
             if nargin > 1
                 obj.fname = varargin{1};
             end
@@ -125,9 +126,9 @@ classdef image_data
         
         function stats = regress(obj, varargin)
             % [stats] = regress(obj, Y)
-            %
+            % -------------------------------------------------------------------
             % Regress obj.Y on obj.dat
-            %
+            % -------------------------------------------------------------------
             % Optional inputs
             % -------------------------------------------------------------------
             % 'robust'          : use robust regression
@@ -218,6 +219,67 @@ classdef image_data
             stats.p.dat = p';
             stats.df = obj;
             stats.df.dat = df';
+        end
+        
+        function mn_obj = mean(obj)
+            % obj = mean(obj)
+            % -------------------------------------------------------------------
+            % Returns mean of image_data() object
+            % -------------------------------------------------------------------
+            
+            mn_obj = obj;
+            mn_obj.dat = mean(obj.dat,2);
+        end
+        
+        function dim = size(obj, varargin)
+            % dim = size(obj, varargin)
+            % -------------------------------------------------------------------
+            % Return dimensions of image_data
+            % -------------------------------------------------------------------
+            % Optional Input: Indicate Dimension(row = 1 or column = 2)
+            % -------------------------------------------------------------------
+            
+            if nargin > 1
+                dim = size(obj.dat, varargin{1});
+            else
+                dim = size(obj.dat);
+            end
+        end
+        
+        function c = horzcat(varargin)
+            % function c = horzcat(varargin)
+            % -------------------------------------------------------------------
+            % Implements the horzcat ([a b]) operator on image_data objects across variables.
+            % Requires that each object has an equal number of rows
+            % -------------------------------------------------------------------
+            % Examples:
+            % c = [obj1 obj2];
+            % -------------------------------------------------------------------
+            
+            %check if number of rows is the same
+            nrow = [];
+            for i = 1:nargin
+                nrow(i) = size(varargin{i},1);
+            end
+            for i = 1:nargin
+                for j = 1:nargin
+                    if nrow(i)~=nrow(j)
+                        error('Objects have a different number of rows')
+                    end
+                end
+            end
+            
+            dat = [];
+            for i = 1:nargin
+                %Check if image_data object
+                if ~isa(varargin{i}, 'image_data')
+                    error('Input Data is not an image_data() object')
+                end
+                dat = [dat, varargin{i}.dat];
+            end
+            
+            c = varargin{1};
+            c.dat = dat;
         end
         
     end

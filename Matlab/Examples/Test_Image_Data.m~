@@ -39,17 +39,4 @@ stats = regress(dat,'robust');
 stats.t.plot
 
 % Mean of data
-mn = mean(dat);
-
-% Concatenate data
-c = [mn dat];
-
-% Size of data
-size(dat)
-size(dat,1)
-
-
-
-
-
-
+m

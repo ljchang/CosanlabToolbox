@@ -1,7 +1,31 @@
 classdef image_data
     
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %
     % Data class for working with 2D matrices in vector form.  Useful for
     % working with images, or matrices.
+    %
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Copyright (c) 2014 Luke Chang
+    %
+    % Permission is hereby granted, free of charge, to any person obtaining a
+    % copy of this software and associated documentation files (the "Software"),
+    % to deal in the Software without restriction, including without limitation
+    % the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    % and/or sell copies of the Software, and to permit persons to whom the
+    % Software is furnished to do so, subject to the following conditions:
+    %
+    % The above copyright notice and this permission notice shall be included
+    % in all copies or substantial portions of the Software.
+    %
+    % THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+    % OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    % FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+    % THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    % LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    % FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    % DEALINGS IN THE SOFTWARE.
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     properties
         Y
@@ -56,10 +80,14 @@ classdef image_data
             obj.fname = [];
         end
         
-        function obj = plot(obj,varargin)
-            % obj = plot(obj)
+        function obj = plot(obj, varargin)
+            % obj = plot(obj, image_number)
             %
             % This function plots the data in matrix form
+            % -------------------------------------------------------------------
+            % Optional Input:
+            % image number:             Image number to plot (i.e., column)
+            % -------------------------------------------------------------------
             
             figure;
             if nargin > 1
@@ -75,7 +103,7 @@ classdef image_data
         end
         
         function obj = write(obj,varargin)
-            % obj = write(obj)
+            % obj = write(obj,file_name)
             %
             % write out object to file.  Will use input file name,
             % otherwise obj.fname.  If there are multiple images, then will
@@ -96,14 +124,24 @@ classdef image_data
         end
         
         function stats = regress(obj, varargin)
-            % [B,BINT,R,RINT,STATS] = regress(obj, Y)
+            % [stats] = regress(obj, Y)
             %
             % Regress obj.Y on obj.dat
-            % Uses matlab's regress function
             %
-            % optional inputs
+            % Optional inputs
             % -------------------------------------------------------------------
-            % 'robust'           : use robust regression
+            % 'robust'          : use robust regression
+            % -------------------------------------------------------------------
+            % Output:
+            % -------------------------------------------------------------------
+            % b                 : beta
+            % se                : standard error
+            % t                 : t-statistic
+            % p                 : p-value
+            % sigma             : sigma (variance of residual)
+            % df                : degrees of freedom
+            % -------------------------------------------------------------------
+            
             
             % Defaults
             doRobust = 0;
@@ -135,7 +173,7 @@ classdef image_data
                 sprintf('Warning:  dat.X is rank deficient.')
             end
             
-            if ~doRobust
+            if ~doRobust %OLS
                 
                 % Estimate Betas in vector
                 [n, k] = size(X);
@@ -156,7 +194,7 @@ classdef image_data
                 p(isnan(p)) = 0;
                 df = repmat(df,1,size(t,2));
                 
-            else
+            else %Robust
                 for ii = 1:size(obj.dat,1)
                     [b(:,ii), STATS] = robustfit(X, obj.dat(ii,:)',[],[],'off');
                     t(:,ii) = STATS.t;
@@ -171,7 +209,7 @@ classdef image_data
             stats.b = obj;
             stats.b.dat = b';
             stats.se = obj;
-            stats.se.dat = stderr';
+            stats.se.dat = se';
             stats.sigma = obj;
             stats.sigma.dat = sigma';
             stats.t = obj;
@@ -181,6 +219,69 @@ classdef image_data
             stats.df = obj;
             stats.df.dat = df';
         end
+        
+        function mn_obj = mean(obj)
+            % obj = mean(obj)
+            %
+            % Returns mean of image_data() object
+            
+            mn_obj = obj;
+            mn_obj.dat = mean(obj.dat,2);
+        end
+        
+        function dim = size(obj, varargin)
+            % dim = size(obj, varargin)
+            %
+            % Return dimensions of image_data
+            % Optional Input: Indicate Dimension(row = 1 or column = 2)
+            
+            if nargin > 1
+                dim = size(obj.dat, varargin{1});
+            else
+                dim = size(obj.dat);
+            end
+        end
+        
+         function c = horzcat(varargin)
+            % function c = horzcat(varargin)
+            % -------------------------------------------------------------------
+            % Implements the horzcat ([a b]) operator on design_matrix objects across variables.
+            % Requires that each object has an equal number of rows
+            % -------------------------------------------------------------------
+            % Examples:
+            % c = [dm1 dm2];
+            % -------------------------------------------------------------------
+            
+            %check if number of rows is the same
+                        %check if varnames are the same
+            nrow = [];
+            for i = 1:nargin
+                nrow(i) = size(varargin{i},1);
+            end
+            for i = 1:nargin
+                for j = 1:nargin
+                    if nrow(i)~=nrow(j)
+                        error('objects have a different number of rows')
+                    end
+                end
+            end
+            
+            dat = [];
+            varname = [];
+            for i = 1:nargin
+                    %Check if design_matrix object
+                if ~isa(varargin{i}, 'design_matrix')
+                    error('Input Data is not an design_matrix object')
+                end
+                
+                dat = [dat, varargin{i}.dat];
+                varname = [varname, varargin{i}.varname];
+            end
+            
+            c = varargin{1};
+            c.dat = dat;
+            c.varname = varname;
+         end
         
     end
 end
