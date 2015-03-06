@@ -106,7 +106,7 @@ classdef image_data
             else
                 if size(obj,2) > 1
                     for i = 1:size(obj,2)
-                       matrix2d{i} =  reshape(obj.dat(:,i),obj.transformation);
+                        matrix2d{i} =  reshape(obj.dat(:,i),obj.transformation);
                     end
                 else
                     matrix2d = reshape(obj.dat,obj.transformation);
@@ -121,17 +121,65 @@ classdef image_data
             % -------------------------------------------------------------------
             % Optional Input:
             % image number:             Image number to plot (i.e., column)
+            % 'sig':                    Followed by binary image_data()
+            %                           object indicating significant pixels
+            % 'line_col:                Followed by Line Color
+            % 'line_width':             Follwed by Line Width
             % -------------------------------------------------------------------
             
+            % Defaults
+            doSig = 0;
+            doPlotNum = 0;
+            line_color = 'r';
+            line_width = 3;
+            
+            % Parse inputs
+            for i = 1:length(varargin)
+                if isnumeric(varargin{i})
+                    doPlotNum = 1;
+                    plotnum = varargin{i};
+                    varargin{i} = {};
+                end
+                if ischar(varargin{i})
+                    if strcmpi(varargin(i),'sig')
+                        doSig = 1;
+                        sig = varargin{i+1};
+                        if ~isa(sig,'image_data')
+                            error('Make sure ''sig'' is followed by a binary image_data() object indicating areas to threshold')
+                        end
+                        find_draw_outline = exist('draw_outline');
+                        if find_draw_outline ~= 2
+                            error('Make sure draw_outline.m is on your path, requires the cosanlab toolbox')
+                        end
+                        varargin{i} = {}; varargin{i + 1} = {};
+                    end
+                    
+                    if strcmpi(varargin{i},'line_color')
+                        line_color = varargin(i+1);
+                        varargin{i} = {}; varargin{i + 1} = {};
+                    end
+                    
+                    if strcmpi(varargin{i},'line_width')
+                        line_width = varargin(i+1);
+                        varargin{i} = {}; varargin{i + 1} = {};
+                    end
+                end
+            end
+            
             figure;
-            if nargin > 1
-                imagesc(oned2twod(obj,varargin{1}))
+            if doPlotNum
+                imagesc(oned2twod(obj,plotnum))
             elseif size(obj.dat,2) > 1
                 sprintf('Warning: more than one datafile, plotting the first image for now. Please select which image to use.')
                 imagesc(oned2twod(obj,1))
             else
                 imagesc(oned2twod(obj))
             end
+            
+            if doSig
+                draw_outline(logical(oned2twod(sig)),line_color,line_width)
+            end
+            
             colorbar
             
         end
@@ -313,6 +361,51 @@ classdef image_data
             
             c = varargin{1};
             c.dat = dat;
+        end
+        
+        function obj = threshold(obj, threshold, varargin)
+            % sig = threshold(obj, pobj, varargin)
+            % -------------------------------------------------------------------
+            % Create a binary map thresholded on p-value.  Must input
+            % object of p-values.
+            % -------------------------------------------------------------------
+            % Inputs
+            % -------------------------------------------------------------------
+            % threshold         : p - value to threshold
+            % -------------------------------------------------------------------
+            % Optional inputs
+            % -------------------------------------------------------------------
+            % image number      : select image to threshold
+            % -------------------------------------------------------------------
+            % Output:
+            % -------------------------------------------------------------------
+            % obj               : binary thresholded object
+            % -------------------------------------------------------------------
+            
+            % Defaults
+            doSigNum = 0;
+            
+            % Parse inputs
+            if nargin > 2
+                doSigNum = 1;
+                signum = varargin{1};
+                varargin{1} = {};
+            end
+            
+            if doSigNum
+                obj.dat = obj.dat(:,signum);
+            end
+            
+            if size(obj.dat,2) > 1
+                sprintf('Warning: more than one datafile, thresholding each image separately')
+                for i = 1:size(obj,2)
+                    obj.dat(obj.dat(:,i) > threshold,i) = 0;
+                    obj.dat(:,i) = logical(obj.dat(:,i));
+                end
+            else
+                obj.dat(obj.dat > threshold) = 0;
+                obj.dat = logical(obj.dat);
+            end
         end
         
     end
