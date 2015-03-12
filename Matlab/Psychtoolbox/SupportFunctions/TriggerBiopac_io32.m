@@ -1,3 +1,4 @@
+
 function [t] = TriggerBiopac_io32(dur)
 % USAGE: [time] = TriggerBiopac_io32(duration)
 % this function made to work with io32

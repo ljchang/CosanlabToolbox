@@ -190,6 +190,37 @@ dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Trial_VideoRating.csv']), hdr2,
 
 %% Set up Devices
 
+if USE_BIOPAC
+    % Test to make sure io32 is on path
+    try
+        config_io
+    catch
+        error('Make sure io32 Driver is installed and config_io.m is on path')
+    end
+    test_func  = exist('io32');
+    if test_func ~= 3
+        error('if using windows, make sure io32 drivers are installed')
+    end
+    global BIOPAC_PORT;
+    
+    % DIGITALIO doesn't work for CINC computer, using io32 instead for now.
+    %    BIOPAC_PORT = digitalio('parallel','LPT2');
+    %     addline(BIOPAC_PORT,0:7,'out');
+    
+    BIOPAC_PORT = hex2dec('E050');
+    
+    BIOPAC_PULSE_DUR = 1; %% this counts as TIME
+end
+
+%% record eyelink whole time
+if USE_EYELINK
+    Eyelink('Command', 'set_idle_mode');
+    WaitSecs(0.05);
+    %         Eyelink('StartRecording', 1, 1, 1, 1);
+    Eyelink('StartRecording');
+    WaitSecs(0.1);
+end
+
 if USE_VIDEO && CONDITION ~= 0
     
     % Device info
@@ -318,6 +349,10 @@ try
         [fps t] = Screen('StartVideoCapture', grabber, 30, 0);
     end
     
+    if USE_BIOPAC; TriggerBiopac_io32(BIOPAC_PULSE_DUR); end
+    
+    if USE_EYELINK; Eyelink('Message', 'ttl_start'); end
+    
     % put up fixation
     Screen('CopyWindow',disp.fixation.w,window);
     startfix = Screen('Flip',window);
@@ -328,6 +363,8 @@ try
     % Play 'movie', at a playbackrate = 1 (normal speed forward),
     % play it once, aka with loopflag = 0,
     % play audio track at volume 1.0  = 100% audio volume.
+    if USE_EYELINK; Eyelink('Message', sprintf('R%d_TRIAL_%d', run,Trialnum)); end
+    
     Screen('PlayMovie', movie, 1, 0, 1.0);
     
     % Video playback and key response RT collection loop:
@@ -488,26 +525,28 @@ try
     KbReleaseWait;
     
     %%% Emotion Ratings
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    trial_out(1) = SUBID;
-    trial_out(2) = i; % Video Number
-    lastt = 2;
-    for e = 1:length(emotions)
-        [trial_out(lastt + 1) trial_out(lastt + 2) trial_out(lastt + 3) trial_out(lastt + 4)] = GetRating(window, rect, screen, 'txt',emotions{e},'type','line', 'anchor', {'None','A Lot'});
-        lastt = lastt + 4;
+    if CONDITION ~= 0
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        trial_out(1) = SUBID;
+        trial_out(2) = i; % Video Number
+        lastt = 2;
+        for e = 1:length(emotions)
+            [trial_out(lastt + 1) trial_out(lastt + 2) trial_out(lastt + 3) trial_out(lastt + 4)] = GetRating(window, rect, screen, 'txt',emotions{e},'type','line', 'anchor', {'None','A Lot'});
+            lastt = lastt + 4;
+            
+            % Wait for 1 second in between each rating
+            Screen('Flip',window);
+            WaitSecs(1)
+        end
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
-        % Wait for 1 second in between each rating
-        Screen('Flip',window);
-        WaitSecs(1)
+        % Append data to file after every trial
+        dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CONDITION) '_Trial_VideoRating.csv']), trial_out, 'delimiter',',','-append','precision',10)
     end
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
-    % Append data to file after every trial
-    dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CONDITION) '_Trial_VideoRating.csv']), trial_out, 'delimiter',',','-append','precision',10)
     
     %% Done with the experiment. Close onscreen window and finish.
     
-    if USE_VIDEO
+    if USE_VIDEO && CONDITION ~= 0
         % Stop capture engine and recording:
         Screen('StopVideoCapture', grabber);
         telapsed = GetSecs - t;
@@ -517,6 +556,32 @@ try
         
         %Write out timing information
         dlmwrite(fullfile(fPath,'Data',['Video_' num2str(SUBID) '_VideoRating_Timing.txt']),[telapsed,fps])
+    end
+    
+    if USE_EYELINK
+        % STEP 8
+        % End of Experiment; close the file first
+        % close graphics window, close data file and shut down tracker
+        Eyelink('Command', 'set_idle_mode');
+        WaitSecs(0.5);
+        Eyelink('CloseFile');
+        % download data file
+        try
+            fprintf('Receiving data file ''%s''\n', edfFile );
+            status=Eyelink('ReceiveFile');
+            if status > 0
+                fprintf('ReceiveFile status %d\n', status);
+            end
+            if 2==exist(edfFile, 'file')
+                fprintf('Data file ''%s'' can be found in ''%s''\n', edfFile, pwd );
+            end
+        catch
+            fprintf('Problem receiving data file ''%s''\n', edfFile );
+        end
+        % STEP 9
+        % cleanup;
+        % function cleanup
+        Eyelink('Shutdown');
     end
     
     ShowCursor;
