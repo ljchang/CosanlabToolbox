@@ -50,12 +50,15 @@ c = [mn dat];
 size(dat)
 size(dat,1)
 
-% convolve_circle
-a =zeros(100,100); b =zeros(100,100);  c =zeros(100,100);
-a(50,50)=1; b(25,25)=1; c(50,50) = 1; c(25,25) = 1;
-dat = image_data({a,b,c});
+% Convert to 2D matrix
+matrix2d = oned2twod(dat,1);
+matrix2d = oned2twod(dat);
 
-dat = convolve_circle(dat,70);
-plot(dat,3)
+a =zeros(100,100); b =zeros(100,100);
+a(50,50)=1; b(25,50)=1;
+dat = image_data({a,b});
+
+dat = convolve_circle(dat,50);
+plot(dat)
 
 

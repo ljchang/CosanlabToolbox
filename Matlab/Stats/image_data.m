@@ -431,8 +431,20 @@ classdef image_data
             [rr cc] = meshgrid(1:R+1);
             C = double(sqrt((rr-((R/2)+1)).^2+(cc-((R/2)+1)).^2)<=R/2);
  
-            obj.dat = conv2(obj.dat,C);
+            % Convert image_data to cell array and convolve each one
+            matrix2d = oned2twod(obj);
+            if iscell(matrix2d)
+                for i = 1:length(matrix2d)
+                    tmp = conv2(matrix2d{i},C,'same');
+                    obj.dat(:,i) = tmp(:);
+                end
+            else
+                tmp = conv2(matrix2d,C,'same');
+                obj.dat = tmp(:);
+            end
+            
         end
+            
         
     end
 end
