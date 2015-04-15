@@ -408,8 +408,8 @@ classdef image_data
             end
         end
         
-        function obj = convolve_circle(obj, R)
-            % sig = convolve_circle(obj, varargin)
+        function obj = convolve_sphere(obj, R)
+            % sig = convolve_sphere(obj, varargin)
             % -------------------------------------------------------------------
             % Convolve object with circle with radius R
             % -------------------------------------------------------------------
@@ -423,15 +423,31 @@ classdef image_data
             % -------------------------------------------------------------------
             
             % Defaults
-            if nargin < 2
-                R = 5;
-            end
+            R = 5;
             
-            % Create sphere for convolution
             [rr cc] = meshgrid(1:R+1);
             C = double(sqrt((rr-((R/2)+1)).^2+(cc-((R/2)+1)).^2)<=R/2);
- 
-            obj.dat = conv2(obj.dat,C);
+            
+                imagesc(C)
+                
+                c = conv2(dat,C);
+            end
+
+
+            if doSigNum
+                obj.dat = obj.dat(:,signum);
+            end
+            
+            if size(obj.dat,2) > 1
+                sprintf('Warning: more than one datafile, thresholding each image separately')
+                for i = 1:size(obj,2)
+                    obj.dat(obj.dat(:,i) > threshold,i) = 0;
+                    obj.dat(:,i) = logical(obj.dat(:,i));
+                end
+            else
+                obj.dat(obj.dat > threshold) = 0;
+                obj.dat = logical(obj.dat);
+            end
         end
         
     end
