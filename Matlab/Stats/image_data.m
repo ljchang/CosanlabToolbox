@@ -408,14 +408,14 @@ classdef image_data
             end
         end
         
-        function obj = convolve_circle(obj, R)
+        function obj = convolve_circle(obj, D)
             % sig = convolve_circle(obj, varargin)
             % -------------------------------------------------------------------
-            % Convolve object with circle with radius R
+            % Convolve object with circle with diameter D
             % -------------------------------------------------------------------
             % Inputs
             % -------------------------------------------------------------------
-            % R                 : Radius in pixels (default = 5)
+            % D                 : Diameter in pixels (default = 5)
             % -------------------------------------------------------------------
             % Output:
             % -------------------------------------------------------------------
@@ -424,12 +424,12 @@ classdef image_data
             
             % Defaults
             if nargin < 2
-                R = 5;
+                D = 5;
             end
             
             % Create sphere for convolution
-            [rr cc] = meshgrid(1:R+1);
-            C = double(sqrt((rr-((R/2)+1)).^2+(cc-((R/2)+1)).^2)<=R/2);
+            [rr cc] = meshgrid(1:D+1);
+            C = double(sqrt((rr-((D/2)+1)).^2+(cc-((D/2)+1)).^2)<=D/2);
  
             % Convert image_data to cell array and convolve each one
             matrix2d = oned2twod(obj);
