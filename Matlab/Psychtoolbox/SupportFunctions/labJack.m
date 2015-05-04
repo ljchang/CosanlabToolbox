@@ -8,7 +8,7 @@
 %>     bash$ brew install libusb exodriver --universal
 %> For linux, see instructions on the labjack site.
 %> With the exodriver installed, you create a new labJack object and you
-%> can then dend figital I/O commands and strobed words. labJack ises a 12bit
+%> can then send digital I/O commands and strobed words. labJack uses a 12bit
 %> word across EIO and CIO, using CIO0 as the strobe bit so one has a
 %> resultant 11bits of values in the strobed word. For example:
 %>
@@ -20,7 +20,7 @@
 % ========================================================================
 classdef labJack < handle
 	
-	properties
+    properties
 		%> friendly object name, setting this to 'null' will force silentMode=1
 		name='LabJack'
 		%> what LabJack device to use; 3 = U3, 6 = U6
@@ -523,8 +523,8 @@ classdef labJack < handle
 				obj.outp = obj.rawWrite(obj.command);
 				if obj.readResponse; obj.inp = obj.rawRead(zeros(1,10),10); end
 			end
-		end
-		
+        end
+
 		% ===================================================================
 		%> @brief setDIODirection
 		%>	setDIODirection sets the direction for FIO, EIO and CIO as read or write
@@ -827,8 +827,8 @@ classdef labJack < handle
 			msb = bitshift(value,-8); %our msb is bitshifted 8 bits
 			msb = bitshift(msb,1); %shift it across as cio0 is reserved;
 			cio = bitor(msb,strobeState); %OR with 1 as cio0 is the strobe trigger and needs to be 1
-		end
-		
+        end
+        
 	end % END STATIC METHODS
 	
 	

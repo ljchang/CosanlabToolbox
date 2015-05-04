@@ -54,7 +54,7 @@
 
 clear all; close all; fclose all;
 if ismac %laptop
-    fPath = '/Users/lukechang/Dropbox/RomanticCouples/CouplesParadigm';
+    fPath = '/Users/canlab/Documents/RomanticCouples';
     cosanlabToolsPath = '/Users/lukechang/Github/Cosanlabtoolbox/Matlab/Psychtoolbox';
     Screen('Preference', 'SkipSyncTests', 1); % skip sync tests problems with yosemite
 elseif ispc %CINC Computer
@@ -68,11 +68,11 @@ addpath(genpath(fullfile(cosanlabToolsPath,'SupportFunctions')));
 rand('state',sum(100*clock));
 
 % Devices
-USE_THERMODE = 0;       % refers to thermode make 0 if not running on computer with thermode
-USE_BIOPAC = 0;         % refers to Biopac make 0 if not running on computer with biopac
-USE_VIDEO = 0;          % record video of Run - Doesn't work on windows
+USE_THERMODE = 1;       % refers to thermode make 0 if not running on computer with thermode
+USE_BIOPAC = 1;         % refers to Biopac make 0 if not running on computer with biopac
+USE_VIDEO = 1;          % record video of Run - Doesn't work on windows
 USE_NETWORK = 1;        % refers to Biopac make 0 if not running on computer with biopac
-USE_SOUND = 1;          % use sound to indicate start of video - useful for syncing video on windows
+USE_SOUND = 0;          % use sound to indicate start of video - useful for syncing video on windows
 
 TRACKBALL_MULTIPLIER = 5;
 
@@ -88,6 +88,7 @@ nTrials = nSites * length(TEMPERATURES);
 
 % Create Random Vector of PAIN Trials
 STIMULI = repmat(TEMPERATURES,1,nSites)';
+PRACTICE_STIMULI = repmat(PRACTICE_TEMP,1,nSites)';
 SITES = repmat(1:nSites,1,length(TEMPERATURES))';
 index = randperm(length(STIMULI));
 STIMULI = STIMULI(index);
@@ -231,9 +232,9 @@ switch button
         CONDITION = 7;
     case key.eight
         CONDITION = 8;
-    case key.eight
+    case key.nine;p=-
         CONDITION = 9;
-    case key.q % ESC key quits the experiment
+    case key.q % ESC ?÷÷÷÷÷÷÷key quits the experiment
         Screen('CloseAll');
         ShowCursor;
         Priority(0);
@@ -286,31 +287,24 @@ end
 
 if USE_THERMODE
     % set up thermode
-    % initialize parallel port
-    global THERMODE_PORT;
-    THERMODE_PORT = digitalio('parallel','LPT1');
-    addline(THERMODE_PORT,0:7,'out');
+    test = which('labJack');
+    if ~isempty(test)
+        lj = labJack('verbose',false);
+    else
+        error('can''t find labJack function on path')
+    end
 end
 
 if USE_BIOPAC
-    % Test to make sure io32 is on path
-    try
-        config_io
-    catch
-        error('Make sure io32 Driver is installed and config_io.m is on path')
+    test = which('labJack');
+    if ~isempty(test)
+        if ~exist('lj')
+            lj = labJack('verbose',false);
+        end
+    else
+        error('can''t find labJack function on path')
     end
-    test_func  = exist('io32');
-    if test_func ~= 3
-        error('if using windows, make sure io32 drivers are installed')
-    end
-    global BIOPAC_PORT;
-    
-    % DIGITALIO doesn't work for CINC computer, using io32 instead for now.
-    %    BIOPAC_PORT = digitalio('parallel','LPT2');
-    %     addline(BIOPAC_PORT,0:7,'out');
-    
-    BIOPAC_PORT = hex2dec('E050');
-    
+        
     BIOPAC_PULSE_DUR = 1; %% this counts as TIME
 end
 
@@ -394,16 +388,12 @@ if USE_NETWORK
     end
 end
 
-
-
-
 %% Text for slides
 
 % %Instructions
 switch CONDITION
     case 0 %practice trials
-        instruct1 = 'We will now practice how to make ratings.\n\nYou will not be receiving any pain during practice.\n\nAfter each trial you will rate the intensity of the pain.\n\nPlease respond as honestly as you can.\n\nNobody else will be able to see your ratings.\n\n\nPress "spacebar" to continue.';
-        instruct2 = 'We will now practice how to make ratings.\n\nYou will not be receiving any pain during practice.\n\nAfter each trial you will rate the intensity of the pain.\n\nPlease respond as honestly as you can.\n\nNobody else will be able to see your ratings.\n\n\nPress "spacebar" to continue.';
+        instruct = 'We will now calibrate the thermode and practice how to make ratings.\n\nIn this condition you will receive several trials of heat stimulation.\n\nAfter each trial you will rate the intensity of the pain.\n\nPlease respond as honestly as you can.\n\nNobody else will be able to see your ratings.\n\n\nPress "spacebar" to continue.';
     case {1,2,3,9} %Standard conditions
         instruct = 'In this condition you will receive several trials of heat stimulation.\n\nAfter each trial you will rate the intensity of the pain.\n\nPlease respond as honestly as you can.\n\nNobody else will be able to see your ratings.\n\n\nPress "spacebar" to continue.';
     case 4 %Button press control
@@ -421,7 +411,7 @@ end
 
 %Initialize File with Header
 switch CONDITION
-    case {1,2,3,8,9}
+    case {0,1,2,3,8,9}
         hdr = 'Subject,Condition,Trial,Temperature,StimulationSite,ExperimentStart,CueOnset,CueOffset,CueDur,AnticipationOnset,AnticipationOffset,AnticipationDur,StimulationOnset,StimulusOffset,StimulationDur,RatingOnset,RatingOffset,RatingDur,Rating,FixationOnset,FixationOffset,FixationDur';
         timings = nan(1,19);
     case {4,5}
@@ -476,70 +466,7 @@ startfix = Screen('Flip',window);
 WaitSecs(STARTFIX);
 
 switch CONDITION
-    case 0 % Practice trials
-        for trial = 1:l
-            %Record Data
-            %'Subject,Condition,Trial,Temperature,StimulationSite,ExperimentStart,CueOnset,CueOffset,CueDur,AnticipationOnset,AnticipationOffset,AnticipationDur,StimulationOnset,StimulusOffset,StimulationDur,RatingOnset,RatingOffset,RatingDur,Rating,FixationOnset,FixationOffset,FixationDur';
-            timings(1) = SUBID;
-            timings(2) = CONDITION;
-            timings(3) = trial;
-            timings(4) = STIMULI(trial);
-            timings(5) = SITES(trial);
-            timings(6) = startfix;
-            
-            %%% PRESTIMFIX
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            Screen('CopyWindow',disp.fixation.w,window);
-            timings(7) = Screen('Flip',window);
-            WaitSecs(FIXDUR(trial));
-            timings(8) = GetSecs;
-            timings(9) = timings(8) - timings(7);
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
-            %%% STIM
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            if USE_NETWORK; fwrite(connection,[trial,CONDITION,2,0],'double');  end
-            
-            Screen('CopyWindow',disp.nodevice.w,window);
-            Screen('TextSize',window,72);
-            DrawFormattedText(window,num2str(STIMULI(trial)),'center',disp.ycenter+200,255);
-            timings(10) = Screen('Flip',window);
-            WaitSecs(PAINDUR);
-            timings(11) = GetSecs;
-            timings(12) = timings(11) - timings(10);
-            
-            if USE_NETWORK % Send signal to stop stimulation screen to computer 2
-                fwrite(connection,222,'double')
-            end
-            WaitSecs(.2)
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
-            %%% RATING
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            if USE_NETWORK; fwrite(connection,[trial,CONDITION,3,0],'double');  end
-            
-            txt = 'Please rate the intensity of your pain.\n\n Your partner will not see this rating.';
-            [timings(13) timings(14) timings(15) timings(16)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','Worst Pain Imaginable'},'txtSize',text_size,'anchorSize',anchor_size);
-            
-            if USE_NETWORK % Wait for signal from Computer 2 before proceeding
-                computer2_timings = WaitForInput(connection,[1], 1);
-            end
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
-            %%% ENDFIX
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            Screen('CopyWindow',disp.fixation.w,window);
-            timings(17) = Screen('Flip',window);
-            WaitSecs(FIXDUR(trial));
-            timings(18) = GetSecs;
-            timings(19) = timings(18) - timings(17);
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
-            % Append data to file after every trial
-            dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CONDITION) '.csv']), timings, 'delimiter',',','-append','precision',10)
-        end
-        
-    case {1,2,3,8,9}  %Normal pain trials
+    case {0,1,2,3,8,9}  %Normal pain trials
         % trial loop
         for trial = 1:nTrials
             
@@ -580,22 +507,34 @@ switch CONDITION
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if USE_NETWORK; fwrite(connection,[trial,CONDITION,2,0],'double');  end
             
-            if USE_BIOPAC; TriggerBiopac_io32(BIOPAC_PULSE_DUR); end
+            if USE_BIOPAC; lj.setDIOValue([0,255,0],[255,255,255]); end
             
             if USE_THERMODE
                 % deliver thermal pain
-                timings(13) = TriggerHeat(STIMULI(trial));
+                if CONDITION  == 0 %practice
+                    timings(13) = GetSecs;
+                    lj.setDIOValue([PRACTICE_STIMULI(trial),255,0],[255,255,255]);
+                else
+                    timings(13) = GetSecs;
+                    lj.setDIOValue([STIMULI(trial),255,0],[255,255,255]);
+                end
                 WaitSecs(TEMPDUR)
             else
                 Screen('CopyWindow',disp.nodevice.w,window);
                 Screen('TextSize',window,72);
-                DrawFormattedText(window,num2str(STIMULI(trial)),'center',disp.ycenter+200,255);
+                if CONDITION == 0 % practice
+                    DrawFormattedText(window,num2str(PRACTICE_STIMULI(trial)),'center',disp.ycenter+200,255);
+                else
+                    DrawFormattedText(window,num2str(STIMULI(trial)),'center',disp.ycenter+200,255);
+                end
                 timings(13) = Screen('Flip',window);
             end
             WaitSecs(PAINDUR);
             timings(14) = GetSecs;
             timings(15) = timings(14) - timings(13);
             
+            if USE_THERMODE || USE_BIOPAC; lj.setDIOValue([0,0,0],[255,255,255]); end %reset triggers
+
             if USE_NETWORK % Send signal to stop stimulation screen to computer 2
                 fwrite(connection,222,'double')
             end
@@ -665,11 +604,12 @@ switch CONDITION
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if USE_NETWORK; fwrite(connection,[trial,CONDITION,2,0],'double');  end
             
-            if USE_BIOPAC; TriggerBiopac_io32(BIOPAC_PULSE_DUR); end
+            if USE_BIOPAC; lj.setDIOValue([0,255,0],[255,255,255]); end
             
             if USE_THERMODE
                 % deliver thermal pain
-                timings(13) = TriggerHeat(STIMULI(trial));
+                timings(13) = GetSecs;
+                lj.setDIOValue([STIMULI(trial),255,0],[255,255,255]);
                 WaitSecs(TEMPDUR)
             else
                 Screen('CopyWindow',disp.nodevice.w,window);
@@ -681,6 +621,8 @@ switch CONDITION
             timings(14) = GetSecs;
             timings(15) = timings(14) - timings(13);
             
+            if USE_THERMODE || USE_BIOPAC; lj.setDIOValue([0,0,0],[255,255,255]); end %reset triggers
+
             if USE_NETWORK % Send signal to stop stimulation screen to computer 2
                 fwrite(connection,222,'double')
             end
@@ -765,11 +707,12 @@ switch CONDITION
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if USE_NETWORK; fwrite(connection,[trial,CONDITION,2,0],'double');  end
             
-            if USE_BIOPAC; TriggerBiopac_io32(BIOPAC_PULSE_DUR); end
+            if USE_BIOPAC; lj.setDIOValue([0,255,0],[255,255,255]); end
             
             if USE_THERMODE
                 % deliver thermal pain
-                timings(13) = TriggerHeat(STIMULI(trial));
+                timings(13) = GetSecs;
+                lj.setDIOValue([STIMULI(trial),255,0],[255,255,255]);
                 WaitSecs(TEMPDUR)
             else
                 Screen('CopyWindow',disp.nodevice.w,window);
@@ -781,6 +724,8 @@ switch CONDITION
             timings(14) = GetSecs;
             timings(15) = timings(14) - timings(13);
             
+            if USE_THERMODE || USE_BIOPAC; lj.setDIOValue([0,0,0],[255,255,255]); end %reset triggers
+
             if USE_NETWORK % Send signal to stop stimulation screen to computer 2
                 fwrite(connection,222,'double')
             end
@@ -873,11 +818,12 @@ switch CONDITION
             
             %%% STIM
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            if USE_BIOPAC; TriggerBiopac_io32(BIOPAC_PULSE_DUR); end
+            if USE_BIOPAC; lj.setDIOValue([0,255,0],[255,255,255]); end
             
             if USE_THERMODE
                 % deliver thermal pain
-                timings(16) = TriggerHeat(STIMULI(trial));
+                timings(16) = GetSecs;
+                lj.setDIOValue([STIMULI(trial),255,0],[255,255,255]);
                 WaitSecs(TEMPDUR)
             else
                 Screen('CopyWindow',disp.nodevice.w,window);
@@ -888,6 +834,8 @@ switch CONDITION
             end
             timings(17) = GetSecs;
             timings(18) = timings(17) - timings(16);
+            
+            if USE_THERMODE || USE_BIOPAC; lj.setDIOValue([0,0,0],[255,255,255]); end %reset triggers
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
             %%% RATING

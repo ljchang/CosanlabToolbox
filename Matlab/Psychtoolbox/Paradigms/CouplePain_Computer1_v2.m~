@@ -54,7 +54,7 @@
 
 clear all; close all; fclose all;
 if ismac %laptop
-    fPath = '/Users/lukechang/Dropbox/RomanticCouples/CouplesParadigm';
+    fPath = '/Users/canlab/Documents/RomanticCouples';
     cosanlabToolsPath = '/Users/lukechang/Github/Cosanlabtoolbox/Matlab/Psychtoolbox';
     Screen('Preference', 'SkipSyncTests', 1); % skip sync tests problems with yosemite
 elseif ispc %CINC Computer
@@ -68,11 +68,11 @@ addpath(genpath(fullfile(cosanlabToolsPath,'SupportFunctions')));
 rand('state',sum(100*clock));
 
 % Devices
-USE_THERMODE = 0;       % refers to thermode make 0 if not running on computer with thermode
-USE_BIOPAC = 0;         % refers to Biopac make 0 if not running on computer with biopac
-USE_VIDEO = 0;          % record video of Run - Doesn't work on windows
-USE_NETWORK = 0;        % refers to Biopac make 0 if not running on computer with biopac
-USE_SOUND = 1;          % use sound to indicate start of video - useful for syncing video on windows
+USE_THERMODE = 1;       % refers to thermode make 0 if not running on computer with thermode
+USE_BIOPAC = 1;         % refers to Biopac make 0 if not running on computer with biopac
+USE_VIDEO = 1;          % record video of Run - Doesn't work on windows
+USE_NETWORK = 1;        % refers to Biopac make 0 if not running on computer with biopac
+USE_SOUND = 0;          % use sound to indicate start of video - useful for syncing video on windows
 
 TRACKBALL_MULTIPLIER = 5;
 
@@ -232,9 +232,9 @@ switch button
         CONDITION = 7;
     case key.eight
         CONDITION = 8;
-    case key.eight
+    case key.nine;p=-
         CONDITION = 9;
-    case key.q % ESC key quits the experiment
+    case key.q % ESC ?÷÷÷÷÷÷÷key quits the experiment
         Screen('CloseAll');
         ShowCursor;
         Priority(0);
@@ -287,31 +287,24 @@ end
 
 if USE_THERMODE
     % set up thermode
-    % initialize parallel port
-    global THERMODE_PORT;
-    THERMODE_PORT = digitalio('parallel','LPT1');
-    addline(THERMODE_PORT,0:7,'out');
+    test = which('labJack');
+    if ~isempty(test)
+        lj = labJack('verbose',false);
+    else
+        error('can''t find labJack function on path')
+    end
 end
 
 if USE_BIOPAC
-    % Test to make sure io32 is on path
-    try
-        config_io
-    catch
-        error('Make sure io32 Driver is installed and config_io.m is on path')
+    test = which('labJack');
+    if ~isempty(test)
+        if ~exist('lj')
+            lj = labJack('verbose',false);
+        end
+    else
+        error('can''t find labJack function on path')
     end
-    test_func  = exist('io32');
-    if test_func ~= 3
-        error('if using windows, make sure io32 drivers are installed')
-    end
-    global BIOPAC_PORT;
-    
-    % DIGITALIO doesn't work for CINC computer, using io32 instead for now.
-    %    BIOPAC_PORT = digitalio('parallel','LPT2');
-    %     addline(BIOPAC_PORT,0:7,'out');
-    
-    BIOPAC_PORT = hex2dec('E050');
-    
+        
     BIOPAC_PULSE_DUR = 1; %% this counts as TIME
 end
 
@@ -514,14 +507,16 @@ switch CONDITION
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if USE_NETWORK; fwrite(connection,[trial,CONDITION,2,0],'double');  end
             
-            if USE_BIOPAC; TriggerBiopac_io32(BIOPAC_PULSE_DUR); end
+            if USE_BIOPAC; lj.setDIOValue([0,255,0],[255,255,255]); end
             
             if USE_THERMODE
                 % deliver thermal pain
                 if CONDITION  == 0 %practice
-                    timings(13) = TriggerHeat(PRACTICE_STIMULI(trial));
+                    timings(13) = GetSecs;
+                    lj.setDIOValue([PRACTICE_STIMULI(trial),255,0],[255,255,255]);
                 else
-                    timings(13) = TriggerHeat(STIMULI(trial));
+                    timings(13) = GetSecs;
+                    lj.setDIOValue([STIMULI(trial),255,0],[255,255,255]);
                 end
                 WaitSecs(TEMPDUR)
             else
@@ -538,6 +533,8 @@ switch CONDITION
             timings(14) = GetSecs;
             timings(15) = timings(14) - timings(13);
             
+            if USE_THERMODE || USE_BIOPAC; lj.setDIOValue([0,0,0],[255,255,255]); end %reset triggers
+
             if USE_NETWORK % Send signal to stop stimulation screen to computer 2
                 fwrite(connection,222,'double')
             end
@@ -607,11 +604,12 @@ switch CONDITION
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if USE_NETWORK; fwrite(connection,[trial,CONDITION,2,0],'double');  end
             
-            if USE_BIOPAC; TriggerBiopac_io32(BIOPAC_PULSE_DUR); end
+            if USE_BIOPAC; lj.setDIOValue([0,255,0],[255,255,255]); end
             
             if USE_THERMODE
                 % deliver thermal pain
-                timings(13) = TriggerHeat(STIMULI(trial));
+                timings(13) = GetSecs;
+                lj.setDIOValue([STIMULI(trial),255,0],[255,255,255]);
                 WaitSecs(TEMPDUR)
             else
                 Screen('CopyWindow',disp.nodevice.w,window);
@@ -623,6 +621,8 @@ switch CONDITION
             timings(14) = GetSecs;
             timings(15) = timings(14) - timings(13);
             
+            if USE_THERMODE || USE_BIOPAC; lj.setDIOValue([0,0,0],[255,255,255]); end %reset triggers
+
             if USE_NETWORK % Send signal to stop stimulation screen to computer 2
                 fwrite(connection,222,'double')
             end
@@ -707,11 +707,12 @@ switch CONDITION
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if USE_NETWORK; fwrite(connection,[trial,CONDITION,2,0],'double');  end
             
-            if USE_BIOPAC; TriggerBiopac_io32(BIOPAC_PULSE_DUR); end
+            if USE_BIOPAC; lj.setDIOValue([0,255,0],[255,255,255]); end
             
             if USE_THERMODE
                 % deliver thermal pain
-                timings(13) = TriggerHeat(STIMULI(trial));
+                timings(13) = GetSecs;
+                lj.setDIOValue([STIMULI(trial),255,0],[255,255,255]);
                 WaitSecs(TEMPDUR)
             else
                 Screen('CopyWindow',disp.nodevice.w,window);
@@ -723,6 +724,8 @@ switch CONDITION
             timings(14) = GetSecs;
             timings(15) = timings(14) - timings(13);
             
+            if USE_THERMODE || USE_BIOPAC; lj.setDIOValue([0,0,0],[255,255,255]); end %reset triggers
+
             if USE_NETWORK % Send signal to stop stimulation screen to computer 2
                 fwrite(connection,222,'double')
             end
@@ -815,11 +818,12 @@ switch CONDITION
             
             %%% STIM
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            if USE_BIOPAC; TriggerBiopac_io32(BIOPAC_PULSE_DUR); end
+            if USE_BIOPAC; lj.setDIOValue([0,255,0],[255,255,255]); end
             
             if USE_THERMODE
                 % deliver thermal pain
-                timings(16) = TriggerHeat(STIMULI(trial));
+                timings(16) = GetSecs;
+                lj.setDIOValue([STIMULI(trial),255,0],[255,255,255]);
                 WaitSecs(TEMPDUR)
             else
                 Screen('CopyWindow',disp.nodevice.w,window);
@@ -830,6 +834,8 @@ switch CONDITION
             end
             timings(17) = GetSecs;
             timings(18) = timings(17) - timings(16);
+            
+            if USE_THERMODE || USE_BIOPAC; lj.setDIOValue([0,0,0],[255,255,255]); end %reset triggers
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
             %%% RATING
