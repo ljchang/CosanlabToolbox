@@ -71,7 +71,7 @@ rand('state',sum(100*clock));
 
 % Devices
 USE_VIDEO = 1;          % record video of Run
-USE_NETWORK = 1;        % refers to Biopac make 0 if not running on computer with biopac
+USE_NETWORK = 0;        % refers to Biopac make 0 if not running on computer with biopac
 
 TRACKBALL_MULTIPLIER = 5;
 

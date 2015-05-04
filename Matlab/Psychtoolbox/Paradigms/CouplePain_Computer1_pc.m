@@ -71,7 +71,7 @@ rand('state',sum(100*clock));
 USE_THERMODE = 0;       % refers to thermode make 0 if not running on computer with thermode
 USE_BIOPAC = 0;         % refers to Biopac make 0 if not running on computer with biopac
 USE_VIDEO = 0;          % record video of Run - Doesn't work on windows
-USE_NETWORK = 1;        % refers to Biopac make 0 if not running on computer with biopac
+USE_NETWORK = 0;        % refers to Biopac make 0 if not running on computer with biopac
 USE_SOUND = 1;          % use sound to indicate start of video - useful for syncing video on windows
 
 TRACKBALL_MULTIPLIER = 5;
