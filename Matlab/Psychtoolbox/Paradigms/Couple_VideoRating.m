@@ -37,19 +37,20 @@ function [position] = Couple_VideoRating(movie_name);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Notes
-%1) need to find list or folder of videos to load
-%2) need to add anchors for rating
+%1) Need to play both videos in scanner
+%2) Need to make sure that rating fits with video.
+%2) Need to fix end of movie PANAS ratings
 
 %% Setup paradigm
 
 % Set Path
-fPath = '/Users/lukechang/Dropbox/Doctor_Patient_Andrew/CoupleVideo';
-cosanlabToolsPath = '/Users/lukechang/Github/Cosanlabtoolbox/Matlab/Psychtoolbox';
+fPath = '/Users/mristimulus/Desktop/RomanticCouples_Video';
+cosanlabToolsPath = fullfile(fPath, 'Cosanlabtoolbox/Matlab/Psychtoolbox');
 addpath(genpath(fullfile(cosanlabToolsPath,'SupportFunctions')));
 
 % Devices
 USE_BIOPAC = 0;         % refers to Biopac make 0 if not running on computer with biopac
-USE_VIDEO = 0;          % record video of Run
+USE_VIDEO = 1;          % record video of Run
 USE_EYELINK = 0;        % eyetracking
 USE_SCANNER = 1;        % use trigger for scanning
 doHistory = 1;          % Show scrolling rating history
@@ -75,7 +76,7 @@ screen=max(Screen('Screens'));
 
 % Settings
 STARTFIX = 4;
-ENDFIX = 4;
+ENDFIX = 10;
 text_size = 28;
 anchor_size = 20;
 
@@ -342,9 +343,8 @@ try
     %%%%BEGIN EXPT
     
     %Start Video Recording
-    if USE_VIDEO
+    if USE_VIDEO && CONDITION ~= 0
         % Start capture -
-        %need to figure out how to deal with the initial pause at the beginning.
         % [fps starttime] = Screen('StartVideoCapture', capturePtr [, captureRateFPS=25] [, dropframes=0] [, startAt]);
         [fps t] = Screen('StartVideoCapture', grabber, 30, 0);
     end
@@ -521,6 +521,11 @@ try
         RETURN;
     end;
     
+    % put up end fixation
+    Screen('CopyWindow',disp.fixation.w,window);
+    startfix = Screen('Flip',window);
+    WaitSecs(ENDFIX);
+    
     % Wait for subject to release keys:
     KbReleaseWait;
     
@@ -531,6 +536,7 @@ try
         trial_out(2) = i; % Video Number
         lastt = 2;
         for e = 1:length(emotions)
+            % Need to Fix this with new GetRating
             [trial_out(lastt + 1) trial_out(lastt + 2) trial_out(lastt + 3) trial_out(lastt + 4)] = GetRating(window, rect, screen, 'txt',emotions{e},'type','line', 'anchor', {'None','A Lot'});
             lastt = lastt + 4;
             
@@ -543,6 +549,7 @@ try
         % Append data to file after every trial
         dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CONDITION) '_Trial_VideoRating.csv']), trial_out, 'delimiter',',','-append','precision',10)
     end
+    
     
     %% Done with the experiment. Close onscreen window and finish.
     
