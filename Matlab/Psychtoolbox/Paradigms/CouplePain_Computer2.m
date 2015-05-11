@@ -303,7 +303,7 @@ DrawFormattedText(window,'.','center','center',255);
 Screen('Flip',window);
 
 % put up instruction screen
-Screen('TextSize',window, 36);
+Screen('TextSize',window, text_size);
 DrawFormattedText(window,instruct,'center','center',255);
 Screen('Flip',window);
 % wait for experimenter to press spacebar
@@ -461,7 +461,17 @@ if USE_VIDEO
     %         nFrame = vid.FramesAcquired;
     %         frameRate = nFrame/video_offset;
     
-    % Stop capture engine and recording:
+    
+  
+    
+    scqa
+    sca
+   sca
+   sca
+   
+   
+   sca
+      % Stop capture engine and recording:
     Screen('StopVideoCapture', grabber);
     telapsed = GetSecs - t;
     
@@ -476,5 +486,6 @@ Screen('CloseAll');
 ShowCursor;
 Priority(0);
 sca;
+
 
 
