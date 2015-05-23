@@ -108,8 +108,8 @@ TEMPDUR = 12;
 COMFORTDUR = 13;
 
 % Settings
-text_size = 28;
-anchor_size = 20;
+text_size = 32;
+anchor_size = 22;
 
 %% PREPARE DISPLAY
 % will break with error message if Screen() can't run
@@ -232,9 +232,9 @@ switch button
         CONDITION = 7;
     case key.eight
         CONDITION = 8;
-    case key.nine;p=-
+    case key.nine;
         CONDITION = 9;
-    case key.q % ESC ?÷÷÷÷÷÷÷key quits the experiment
+    case key.q % ESC key quits the experiment
         Screen('CloseAll');
         ShowCursor;
         Priority(0);
@@ -271,69 +271,6 @@ ListenChar(1); %Start listening to keyboard again.
 
 
 %% PREPARE DEVICES
-
-if USE_SOUND
-    % Set up audio playback
-    % See http://www.scottfraundorf.com/matlab_audio.html#pc
-    InitializePsychSound(1); %inidializes sound driver...the 1 pushes for low latency
-    if ismac %laptop
-        pahandle = PsychPortAudio('Open', [], 1, [], 44100, 2, [], 0.015);
-    elseif ispc %CINC Computer
-        pahandle = PsychPortAudio('Open', [], 1, [], 44100, 2, [], 0.015);
-    end
-    [sounddata soundfreq] = audioread(fullfile(cosanlabToolsPath,'SupportFunctions','Sounds','Bell_E5_1000ms.wav')); % Load Sound
-    PsychPortAudio('FillBuffer', pahandle, sounddata');
-end
-
-if USE_THERMODE
-    % set up thermode
-    test = which('labJack');
-    if ~isempty(test)
-        lj = labJack('verbose',false);
-    else
-        error('can''t find labJack function on path')
-    end
-end
-
-if USE_BIOPAC
-    test = which('labJack');
-    if ~isempty(test)
-        if ~exist('lj')
-            lj = labJack('verbose',false);
-        end
-    else
-        error('can''t find labJack function on path')
-    end
-        
-    BIOPAC_PULSE_DUR = 1; %% this counts as TIME
-end
-
-if USE_VIDEO
-    
-    % Device info
-    devs = Screen('VideoCaptureDevices');
-    did = [];
-    for i=1:length(devs)
-        if devs(i).InputIndex==0
-            did = [did,devs(i).DeviceIndex];
-        end
-    end
-    % [builtinID, builtin_dev] = PsychGetCamIdForSpec('OSXAVFoundationVideoSource');
-    % [logitechID, log_dev] = PsychGetCamIdForSpec('OSXAVFoundationVideoSource');
-    
-    % Select Codec
-    c = ':CodecType=x264enc Keyframe=1: CodecSettings= Videoquality=1';
-    
-    % Settings for video recording
-    recFlag = 0 + 4 + 16 + 64; % [0,2]=sound off or on; [4] = disables internal processing; [16]=offload to separate processing thread; [64] = request timestamps in movie recording time instead of GetSecs() time:
-    
-    % Initialize capture
-    % Need to figure out how to change resolution and select webcam
-    % videoPtr =Screen('OpenVideoCapture', windowPtr [, deviceIndex][, roirectangle][, pixeldepth][, numbuffers][, allowfallback][, targetmoviename][, recordingflags][, captureEngineType][, bitdepth=8]);
-    grabber = Screen('OpenVideoCapture', window, did(2), [], [], [], 1, fullfile(fPath,'Data',['Video_' num2str(SUBID) '_Condition' num2str(CONDITION) '.avi' c]), recFlag, 3, 8);
-    WaitSecs('YieldSecs', 2); %insert delay to allow video to spool up
-    
-end
 
 if USE_NETWORK
     ListenChar(2); %Stop listening to keyboard
@@ -387,6 +324,70 @@ if USE_NETWORK
         testcomplete = WaitForInput(connection,[1,1],.5);
     end
 end
+
+if USE_THERMODE
+    % set up thermode
+    test = which('labJack');
+    if ~isempty(test)
+        lj = labJack('verbose',false);
+    else
+        error('can''t find labJack function on path')
+    end
+end
+
+if USE_BIOPAC
+    test = which('labJack');
+    if ~isempty(test)
+        if ~exist('lj')
+            lj = labJack('verbose',false);
+        end
+    else
+        error('can''t find labJack function on path')
+    end
+        
+    BIOPAC_PULSE_DUR = 1; %% this counts as TIME
+end
+
+if USE_SOUND
+    % Set up audio playback
+    % See http://www.scottfraundorf.com/matlab_audio.html#pc
+    InitializePsychSound(1); %inidializes sound driver...the 1 pushes for low latency
+    if ismac %laptop
+        pahandle = PsychPortAudio('Open', [], 1, [], 44100, 2, [], 0.015);
+    elseif ispc %CINC Computer
+        pahandle = PsychPortAudio('Open', [], 1, [], 44100, 2, [], 0.015);
+    end
+    [sounddata soundfreq] = audioread(fullfile(cosanlabToolsPath,'SupportFunctions','Sounds','Bell_E5_1000ms.wav')); % Load Sound
+    PsychPortAudio('FillBuffer', pahandle, sounddata');
+end
+
+if USE_VIDEO
+    
+    % Device info
+    devs = Screen('VideoCaptureDevices');
+    did = [];
+    for i=1:length(devs)
+        if devs(i).InputIndex==0
+            did = [did,devs(i).DeviceIndex];
+        end
+    end
+    % [builtinID, builtin_dev] = PsychGetCamIdForSpec('OSXAVFoundationVideoSource');
+    % [logitechID, log_dev] = PsychGetCamIdForSpec('OSXAVFoundationVideoSource');
+    
+    % Select Codec
+    c = ':CodecType=x264enc Keyframe=1: CodecSettings= Videoquality=1';
+    
+    % Settings for video recording
+    recFlag = 0 + 4 + 16 + 64; % [0,2]=sound off or on; [4] = disables internal processing; [16]=offload to separate processing thread; [64] = request timestamps in movie recording time instead of GetSecs() time:
+    
+    % Initialize capture
+    % Need to figure out how to change resolution and select webcam
+    % videoPtr =Screen('OpenVideoCapture', windowPtr [, deviceIndex][, roirectangle][, pixeldepth][, numbuffers][, allowfallback][, targetmoviename][, recordingflags][, captureEngineType][, bitdepth=8]);
+    grabber = Screen('OpenVideoCapture', window, did(2), [], [], [], 1, fullfile(fPath,'Data',['Video_' num2str(SUBID) '_Condition' num2str(CONDITION) '.avi' c]), recFlag, 3, 8);
+    WaitSecs('YieldSecs', 2); %insert delay to allow video to spool up
+    
+end
+
 
 %% Text for slides
 
