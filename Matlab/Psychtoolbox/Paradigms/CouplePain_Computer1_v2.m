@@ -300,7 +300,7 @@ if USE_NETWORK
             Screen('Flip',window);
         end
     else %no ipaddress file exists.
-        iptext = ['Set up network connection with laptop. Please input the IP address from the laptop server (e.g. ' ipaddress ').'];
+        iptext = ['Set up network connection with laptop. Please input the IP address from the laptop server (e.g. 192.168.1.101).'];
         ipaddress = GetEchoString(window, iptext, round(disp.screenWidth*.25), disp.ycenter, [255, 255, 255], [0, 0, 0],[]);
     end
     
