@@ -81,7 +81,7 @@ RATINGDUR = 1;
 CUEDUR = 1;
 ENDSCREENDUR = 3;
 STARTFIX = 1;
-FEEDBACKDUR = 0;  % Will wait for button press 
+FEEDBACKDUR = 0;  % Will wait for button press
 
 % Settings
 text_size = 28;
@@ -402,7 +402,7 @@ while t <= nTrials
             % Send trial data to Computer 1
             fwrite(connection, 200,'double')
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+            
         case 5 %Share how partner is feeling :: Only for condition 5
             
             %%% Share Feeling
@@ -411,7 +411,7 @@ while t <= nTrials
             txt = 'This is how your partner wanted you to know that they are feeling.\n\n\n\n\n\n\n\n\n\n\n\n\n\nPress ''Spacebar'' when ready to proceed';
             
             [timings(13) timings(14) timings(15)] = ShowRating(timings(12), FEEDBACKDUR, window, rect, screenNumber, 'txt', txt, 'type','line','anchor',{'None','A Lot'},'txtSize',text_size,'anchorSize',anchor_size);
-   
+            
             % Send trial data to Computer 1
             fwrite(connection, 200,'double')
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -434,7 +434,7 @@ while t <= nTrials
             [timings(12) timings(13) timings(14)] = ShowProgressBar(comfort_time,window, rect, screenNumber,'txt',txt,'anchor',{'0',num2str(comfort_time)});
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
-  
+            
     end
     
     %%% Fixation
@@ -461,17 +461,7 @@ if USE_VIDEO
     %         nFrame = vid.FramesAcquired;
     %         frameRate = nFrame/video_offset;
     
-    
-  
-    
-    scqa
-    sca
-   sca
-   sca
-   
-   
-   sca
-      % Stop capture engine and recording:
+    % Stop capture engine and recording:
     Screen('StopVideoCapture', grabber);
     telapsed = GetSecs - t;
     

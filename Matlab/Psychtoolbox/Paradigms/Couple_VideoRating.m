@@ -37,23 +37,27 @@ function [position] = Couple_VideoRating(movie_name);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Notes
-%1) Need to play both videos in scanner
 %2) Need to make sure that rating fits with video.
-%2) Need to fix end of movie PANAS ratings
 
 %% Setup paradigm
-
-% Set Path
-fPath = '/Users/mristimulus/Desktop/RomanticCouples_Video';
-cosanlabToolsPath = fullfile(fPath, 'Cosanlabtoolbox/Matlab/Psychtoolbox');
-addpath(genpath(fullfile(cosanlabToolsPath,'SupportFunctions')));
 
 % Devices
 USE_BIOPAC = 0;         % refers to Biopac make 0 if not running on computer with biopac
 USE_VIDEO = 1;          % record video of Run
 USE_EYELINK = 0;        % eyetracking
 USE_SCANNER = 1;        % use trigger for scanning
+USE_MRISTIMULUS = 0;    % run on MRI Stimulus computer
 doHistory = 1;          % Show scrolling rating history
+
+% Set Path
+if USE_MRISTIMULUS
+    fPath = '/Users/mristimulus/Desktop/RomanticCouples_Video';
+else
+    fPath = '/Users/lukechang/Dropbox/Doctor_Patient_Andrew/CoupleVideo';
+end
+cosanlabToolsPath = fullfile(fPath, 'Cosanlabtoolbox/Matlab/Psychtoolbox');
+addpath(genpath(fullfile(cosanlabToolsPath,'SupportFunctions')));
+
 
 % initialize mouse recording output
 position = [];
@@ -222,7 +226,12 @@ if USE_EYELINK
     WaitSecs(0.1);
 end
 
-if USE_VIDEO && CONDITION ~= 0
+% Don't use video if running in the scanner.
+if CONDITION == 0
+    USE_VIDEO = 0;
+end
+
+if USE_VIDEO
     
     % Device info
     devs = Screen('VideoCaptureDevices');
@@ -252,7 +261,7 @@ end
 if nargin < 1 %look for movies that match subject ID if not provided
     movie_list = rdir(fullfile(fPath,'Videos','*mp4'));
     f_name = cellstr(strvcat(movie_list.name));
-    wh_file = strfind(f_name,num2str(SUBID));
+    wh_file = strfind(f_name,['/' num2str(SUBID)]);
     movie_name = f_name{~cellfun(@isempty,wh_file)};
 end;
 
@@ -261,15 +270,18 @@ if f_exist ~= 2
     error('Make sure movie file is a real file on your matlab search path.')
 end
 
+% Create MOVIE list (will randomize order based on SUBID
+test_vid = fullfile(fPath,'Videos','TestVideo.mp4');
+f_exist = which(test_vid);
+if f_exist ~= 2
+    error('Make sure test video file is a real file on your matlab search path.')
+end
+if rem(SUBID,2)
+    MOVIES = {movie_name,test_vid};
+else
+    MOVIES = {test_vid,movie_name};
+end
 
-% Open the moviefile and query some infos like duration, framerate,
-% width and height of video frames. We could also query the total count of frames in
-% the movie, but computing 'framecount' takes long, so avoid to query
-% this property if you don't need it!
-[movie movieduration fps movie_width movie_height] = Screen('OpenMovie', window, movie_name);
-
-% We estimate framecount instead of querying it - faster:
-framecount = movieduration * fps;
 
 %% Set up screens
 
@@ -358,198 +370,211 @@ try
     startfix = Screen('Flip',window);
     WaitSecs(STARTFIX);
     
-    
-    % Start playback of the movie:
-    % Play 'movie', at a playbackrate = 1 (normal speed forward),
-    % play it once, aka with loopflag = 0,
-    % play audio track at volume 1.0  = 100% audio volume.
-    if USE_EYELINK; Eyelink('Message', sprintf('R%d_TRIAL_%d', run,Trialnum)); end
-    
-    Screen('PlayMovie', movie, 1, 0, 1.0);
-    
-    % Video playback and key response RT collection loop:
-    % This loop repeats until either the subject responded with a
-    % keypress to indicate s(he) detected the event in the vido, or
-    % until the end of the movie is reached.
-    movietexture=0;     % Texture handle for the current movie frame.
-    lastpts=0;          % Presentation timestamp of last frame.
-    onsettime=-1;       % Realtime at which the event was shown to the subject.
-    rejecttrial=0;      % Flag which is set to 1 to reject an invalid trial.
-    
-    while movietexture >= 0
-        % Check if a new movie video frame is ready for visual
-        % presentation: This call polls for arrival of a new frame. If
-        % a new frame is ready, it converts the video frame into a
-        % Psychtoolbox texture image and returns a handle in
-        % 'movietexture'. 'pts' contains a so called presentation
-        % timestamp. That is the time (in seconds since start of movie)
-        % at which this video frame should be shown on the screen.
+    for m = 1:length(MOVIES)
         
-        % The 0 - flag means: Don't wait for arrival of new frame, just
-        % return a zero or -1 'movietexture' if none is ready.
-        [movietexture pts] = Screen('GetMovieImage', window, movie, 0);
+        % Load Movie file from MOVIES variable
+        % Open the moviefile and query some infos like duration, framerate,
+        % width and height of video frames. We could also query the total count of frames in
+        % the movie, but computing 'framecount' takes long, so avoid to query
+        % this property if you don't need it!
+        [movie movieduration fps movie_width movie_height] = Screen('OpenMovie', window, MOVIES{m});
         
-        % Is it a valid texture?
-        if movietexture > 0
-            % Yes. Draw the texture into backbuffer:
-            Screen('DrawTexture', window, movietexture);
+        % We estimate framecount instead of querying it - faster:
+        framecount = movieduration * fps;
+        
+        % Start playback of the movie:
+        % Play 'movie', at a playbackrate = 1 (normal speed forward),
+        % play it once, aka with loopflag = 0,
+        % play audio track at volume 1.0  = 100% audio volume.
+        if USE_EYELINK; Eyelink('Message', sprintf('R%d_TRIAL_%d', run,Trialnum)); end
+        
+        Screen('PlayMovie', movie, 1, 0, 1.0);
+        
+        % Video playback and key response RT collection loop:
+        % This loop repeats until either the subject responded with a
+        % keypress to indicate s(he) detected the event in the vido, or
+        % until the end of the movie is reached.
+        movietexture=0;     % Texture handle for the current movie frame.
+        lastpts=0;          % Presentation timestamp of last frame.
+        onsettime=-1;       % Realtime at which the event was shown to the subject.
+        rejecttrial=0;      % Flag which is set to 1 to reject an invalid trial.
+        
+        while movietexture >= 0
+            % Check if a new movie video frame is ready for visual
+            % presentation: This call polls for arrival of a new frame. If
+            % a new frame is ready, it converts the video frame into a
+            % Psychtoolbox texture image and returns a handle in
+            % 'movietexture'. 'pts' contains a so called presentation
+            % timestamp. That is the time (in seconds since start of movie)
+            % at which this video frame should be shown on the screen.
             
-            % Flip the display to show the image at next retrace:
-            % vbl will contain the exact system time of image onset on
-            % screen: This should be accurate in the sub-millisecond
-            % range.
-            vbl=Screen('Flip', window);
-            % Is this the event video frame we've been waiting for?
-            if onsettime==-1
-                % Yes: This is the first frame with a pts timestamp that is
-                % equal or greater than the timeOfEvent, so 'vbl' is
-                % the exact time when the event was presented to the
-                % subject. Define it as onsettime:
-                onsettime = vbl;
+            % The 0 - flag means: Don't wait for arrival of new frame, just
+            % return a zero or -1 'movietexture' if none is ready.
+            [movietexture pts] = Screen('GetMovieImage', window, movie, 0);
+            
+            % Is it a valid texture?
+            if movietexture > 0
+                % Yes. Draw the texture into backbuffer:
+                Screen('DrawTexture', window, movietexture);
                 
-                % Compare current pts to last one to see if the movie
-                % decoder skipped a frame at this crucial point in
-                % time. That would invalidate this trial.
-                if (pts - lastpts > 1.5*(1/fps))
-                    % Difference to last frame is more than 1.5 times
-                    % the expected difference under assumption 'no
-                    % skip'. We skipped in the wrong moment!
-                    rejecttrial=1;
+                % Flip the display to show the image at next retrace:
+                % vbl will contain the exact system time of image onset on
+                % screen: This should be accurate in the sub-millisecond
+                % range.
+                vbl=Screen('Flip', window);
+                % Is this the event video frame we've been waiting for?
+                if onsettime==-1
+                    % Yes: This is the first frame with a pts timestamp that is
+                    % equal or greater than the timeOfEvent, so 'vbl' is
+                    % the exact time when the event was presented to the
+                    % subject. Define it as onsettime:
+                    onsettime = vbl;
+                    
+                    % Compare current pts to last one to see if the movie
+                    % decoder skipped a frame at this crucial point in
+                    % time. That would invalidate this trial.
+                    if (pts - lastpts > 1.5*(1/fps))
+                        % Difference to last frame is more than 1.5 times
+                        % the expected difference under assumption 'no
+                        % skip'. We skipped in the wrong moment!
+                        rejecttrial=1;
+                    end;
                 end;
+                
+                % Keep track of the frames pts in order to check for skipped frames:
+                lastpts=pts;
+                
+                % Delete the texture. We don't need it anymore:
+                Screen('Close', movietexture);
+                movietexture=0;
             end;
             
-            % Keep track of the frames pts in order to check for skipped frames:
-            lastpts=pts;
+            %%% Continuous Mouse Ratings
+            if CONDITION ~=0
+                % Create Rating Lines Bounds
+                movie_center = rect/2;
+                if doHistory % Rating history below video
+                    rightb = movie_center(3) + movie_width/2 + 25;
+                    leftb = rightb - 50;
+                    ub = movie_center(4) + movie_height/2 + 25;
+                    lb = ub + 200;
+                else % Rating next to video
+                    leftb = movie_center(3) + movie_width/2 + 25;
+                    rightb = leftb + 50;
+                    ub = movie_center(4) - movie_height/2;
+                    lb = movie_center(4) + movie_height/2;
+                end
+                
+                %Track Mouse coordinate
+                t = GetSecs;
+                [x,y,buttons] = GetMouse(window);
+                if y < ub
+                    y = ub;
+                elseif y > lb
+                    y = lb;
+                end
+                position = [position ; x, y, t, (y-lb)/(ub-lb)];
+                
+                % Text Anchors
+                uTextAnchor = 'Positive';
+                lTextAnchor = 'Negative';
+                
+                % Create Rating Lines
+                rateLineArray = [leftb rightb leftb rightb leftb+5 rightb-5 (leftb + ((rightb-leftb)/2)) (leftb + ((rightb-leftb)/2)) leftb rightb; ub ub lb lb (ub + ((lb-ub)/2)) (ub + ((lb-ub)/2)) ub lb y y];
+                rateColorArray = [255 255 255 255 255 255 255 255 255 255; 255 255 255 255 255 255 255 255 0 0; 255 255 255 255 255 255 255 255 0 0];
+                
+                %             (lb-ub)/2
+                if doHistory % Create Rating history
+                    
+                    timeWindow = 20;
+                    if size(position,1) < fps*timeWindow
+                        rateHistoryY = ones(1,fps*timeWindow)*((ub + lb)/2);
+                        rateHistoryY(end - size(position,1) + 1:end) = position(:,2);
+                    else
+                        rateHistoryY = position(end-fps*timeWindow + 1:end,2)';
+                    end
+                    rateHistory = [leftb - (fps*timeWindow) + 1:leftb; rateHistoryY];
+                    rateHistoryColor = repmat([30,30,30],size(rateHistory,2),1)';
+                    Screen('DrawLines',window, [rateLineArray,rateHistory], 4,[rateColorArray,rateHistoryColor]);
+                else % No History
+                    Screen('DrawLines',window, rateLineArray, 4,rateColorArray);
+                end
+                
+                % Add Text Anchors
+                Screen('TextFont', window, 'Helvetica Light');
+                Screen('TextSize', window, 20);
+                DrawFormattedText(window, uTextAnchor, leftb, ub - 25, [255 255 255]);
+                DrawFormattedText(window, lTextAnchor, leftb, lb, [255 255 255]);
+                
+                % Append data to file after every trial
+                dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Continuous_VideoRating.csv']), [SUBID CONDITION position(end,:)], 'delimiter',',','-append','precision',10)
+            end
             
-            % Delete the texture. We don't need it anymore:
-            Screen('Close', movietexture);
-            movietexture=0;
+            % Done with drawing. Check the keyboard for subjects response:
+            [keyIsDown, secs, keyCode]=KbCheck;
+            if (keyIsDown==1)
+                % Abort requested?
+                if keyCode(esc)
+                    % This signals abortion:
+                    rejecttrial=-1;
+                    % Break out of display loop:
+                    break;
+                end;
+            end
+            
+        end; % ...of display loop...
+        
+        % Stop movie playback, in case it isn't already stopped. We do this
+        % by selection of a playback rate of zero: This will also return
+        % the number of frames that had to be dropped to keep audio, video
+        % and realtime in sync.
+        droppedcount = Screen('PlayMovie', movie, 0, 0, 0);
+        if (droppedcount > 0.2*framecount)
+            % Over 20% of all frames skipped?!? Playback problems! We
+            % reject this trial...
+            rejecttrial=4;
         end;
         
-        %%% Continuous Mouse Ratings
-        if CONDITION ~=0
-            % Create Rating Lines Bounds
-            movie_center = rect/2;
-            if doHistory % Rating history below video
-                rightb = movie_center(3) + movie_width/2 + 25;
-                leftb = rightb - 50;
-                ub = movie_center(4) + movie_height/2 + 25;
-                lb = ub + 200;
-            else % Rating next to video
-                leftb = movie_center(3) + movie_width/2 + 25;
-                rightb = leftb + 50;
-                ub = movie_center(4) - movie_height/2;
-                lb = movie_center(4) + movie_height/2;
-            end
-            
-            %Track Mouse coordinate
-            t = GetSecs;
-            [x,y,buttons] = GetMouse(window);
-            if y < ub
-                y = ub;
-            elseif y > lb
-                y = lb;
-            end
-            position = [position ; x, y, t, (y-lb)/(ub-lb)];
-            
-            % Text Anchors
-            uTextAnchor = 'Positive';
-            lTextAnchor = 'Negative';
-            
-            % Create Rating Lines
-            rateLineArray = [leftb rightb leftb rightb leftb+5 rightb-5 (leftb + ((rightb-leftb)/2)) (leftb + ((rightb-leftb)/2)) leftb rightb; ub ub lb lb (ub + ((lb-ub)/2)) (ub + ((lb-ub)/2)) ub lb y y];
-            rateColorArray = [255 255 255 255 255 255 255 255 255 255; 255 255 255 255 255 255 255 255 0 0; 255 255 255 255 255 255 255 255 0 0];
-            
-            %             (lb-ub)/2
-            if doHistory % Create Rating history
+        % Close the moviefile.
+        Screen('CloseMovie', movie);
+        
+        % Check if aborted.
+        if (rejecttrial==-1)
+            % Break out of trial loop
+            RETURN;
+        end;
+        
+        % Wait for subject to release keys:
+        KbReleaseWait;
+        
+        %%% Emotion Ratings
+        if CONDITION ~= 0
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            trial_out(1) = SUBID;
+            trial_out(2) = i; % Video Number
+            lastt = 2;
+            for e = 1:length(emotions)
+                % Need to Fix this with new GetRating
+                [trial_out(lastt + 1) trial_out(lastt + 2) trial_out(lastt + 3) trial_out(lastt + 4)] = GetRating(window, rect, screen, 'txt',emotions{e},'type','line', 'anchor', {'None','A Lot'},'txtSize',text_size,'anchorSize',anchor_size);
                 
-                timeWindow = 20;
-                if size(position,1) < fps*timeWindow
-                    rateHistoryY = ones(1,fps*timeWindow)*((ub + lb)/2);
-                    rateHistoryY(end - size(position,1) + 1:end) = position(:,2);
-                else
-                    rateHistoryY = position(end-fps*timeWindow + 1:end,2)';
-                end
-                rateHistory = [leftb - (fps*timeWindow) + 1:leftb; rateHistoryY];
-                rateHistoryColor = repmat([30,30,30],size(rateHistory,2),1)';
-                Screen('DrawLines',window, [rateLineArray,rateHistory], 4,[rateColorArray,rateHistoryColor]);
-            else % No History
-                Screen('DrawLines',window, rateLineArray, 4,rateColorArray);
+                lastt = lastt + 4;
+                
+                % Wait for 1 second in between each rating
+                Screen('Flip',window);
+                WaitSecs(1)
             end
-            
-            % Add Text Anchors
-            Screen('TextFont', window, 'Helvetica Light');
-            Screen('TextSize', window, 20);
-            DrawFormattedText(window, uTextAnchor, leftb, ub - 25, [255 255 255]);
-            DrawFormattedText(window, lTextAnchor, leftb, lb, [255 255 255]);
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
             % Append data to file after every trial
-            dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Continuous_VideoRating.csv']), [SUBID CONDITION position(end,:)], 'delimiter',',','-append','precision',10)
+            dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CONDITION) '_Trial_VideoRating.csv']), trial_out, 'delimiter',',','-append','precision',10)
         end
         
-        % Done with drawing. Check the keyboard for subjects response:
-        [keyIsDown, secs, keyCode]=KbCheck;
-        if (keyIsDown==1)
-            % Abort requested?
-            if keyCode(esc)
-                % This signals abortion:
-                rejecttrial=-1;
-                % Break out of display loop:
-                break;
-            end;
-        end
+        % put up end fixation
+        Screen('CopyWindow',disp.fixation.w,window);
+        startfix = Screen('Flip',window);
+        WaitSecs(ENDFIX);
         
-    end; % ...of display loop...
-    
-    % Stop movie playback, in case it isn't already stopped. We do this
-    % by selection of a playback rate of zero: This will also return
-    % the number of frames that had to be dropped to keep audio, video
-    % and realtime in sync.
-    droppedcount = Screen('PlayMovie', movie, 0, 0, 0);
-    if (droppedcount > 0.2*framecount)
-        % Over 20% of all frames skipped?!? Playback problems! We
-        % reject this trial...
-        rejecttrial=4;
-    end;
-    
-    % Close the moviefile.
-    Screen('CloseMovie', movie);
-    
-    % Check if aborted.
-    if (rejecttrial==-1)
-        % Break out of trial loop
-        RETURN;
-    end;
-    
-    % put up end fixation
-    Screen('CopyWindow',disp.fixation.w,window);
-    startfix = Screen('Flip',window);
-    WaitSecs(ENDFIX);
-    
-    % Wait for subject to release keys:
-    KbReleaseWait;
-    
-    %%% Emotion Ratings
-    if CONDITION ~= 0
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        trial_out(1) = SUBID;
-        trial_out(2) = i; % Video Number
-        lastt = 2;
-        for e = 1:length(emotions)
-            % Need to Fix this with new GetRating
-            [trial_out(lastt + 1) trial_out(lastt + 2) trial_out(lastt + 3) trial_out(lastt + 4)] = GetRating(window, rect, screen, 'txt',emotions{e},'type','line', 'anchor', {'None','A Lot'});
-            lastt = lastt + 4;
-            
-            % Wait for 1 second in between each rating
-            Screen('Flip',window);
-            WaitSecs(1)
-        end
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
-        % Append data to file after every trial
-        dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CONDITION) '_Trial_VideoRating.csv']), trial_out, 'delimiter',',','-append','precision',10)
     end
-    
     
     %% Done with the experiment. Close onscreen window and finish.
     

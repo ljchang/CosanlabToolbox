@@ -773,7 +773,7 @@ classdef comp_model < handle & design_matrix
             end
             
         end %Function end
-        
+            
     end %methods
 end %class
 
