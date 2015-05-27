@@ -108,8 +108,8 @@ TEMPDUR = 12;
 COMFORTDUR = 13;
 
 % Settings
-text_size = 28;
-anchor_size = 20;
+text_size = 32;
+anchor_size = 22;
 
 %% PREPARE DISPLAY
 % will break with error message if Screen() can't run
@@ -232,9 +232,9 @@ switch button
         CONDITION = 7;
     case key.eight
         CONDITION = 8;
-    case key.nine;p=-
+    case key.nine;
         CONDITION = 9;
-    case key.q % ESC ?÷÷÷÷÷÷÷key quits the experiment
+    case key.q % ESC key quits the experiment
         Screen('CloseAll');
         ShowCursor;
         Priority(0);
@@ -272,17 +272,57 @@ ListenChar(1); %Start listening to keyboard again.
 
 %% PREPARE DEVICES
 
-if USE_SOUND
-    % Set up audio playback
-    % See http://www.scottfraundorf.com/matlab_audio.html#pc
-    InitializePsychSound(1); %inidializes sound driver...the 1 pushes for low latency
-    if ismac %laptop
-        pahandle = PsychPortAudio('Open', [], 1, [], 44100, 2, [], 0.015);
-    elseif ispc %CINC Computer
-        pahandle = PsychPortAudio('Open', [], 1, [], 44100, 2, [], 0.015);
+if USE_NETWORK
+    ListenChar(2); %Stop listening to keyboard
+    Screen('TextSize',window, 20);
+    
+    % Load previous IPADDRESS
+    file_exist = exist(fullfile(fPath,'ipaddress.txt'),'file');
+    if file_exist == 2
+        fid = fopen(fullfile(fPath,'ipaddress.txt'),'rt');
+        tmp = textscan(fid,'%c','Delimiter','\n');
+        ipaddress = tmp{1}';
+        fclose(fid);
+        iptext = ['Set up network connection with laptop.\nIs this the correct IP Address from the laptop server? ' ipaddress '\n\n1 = "YES"\n\n2="NO"'];
+        Screen('TextSize',window, 28);
+        DrawFormattedText(window,iptext,'center','center',255);
+        Screen('Flip',window);
+        keycode(key.one) = 0; keycode(key.two) = 0;
+        while keycode(key.one) == 0 && keycode(key.two) == 0
+            [presstime keycode delta] = KbWait;
+        end
+        if keycode(key.one)
+            %             return;
+        else %IP address is incorrect
+            iptext = ['Please input the IP address from the laptop server (e.g. ' ipaddress ').'];
+            ipaddress = GetEchoString(window, iptext, round(disp.screenWidth*.25), disp.ycenter, [255, 255, 255], [0, 0, 0],[]);
+            WaitSecs(.2);
+            Screen('Flip',window);
+        end
+    else %no ipaddress file exists.
+        iptext = ['Set up network connection with laptop. Please input the IP address from the laptop server (e.g. 192.168.1.101).'];
+        ipaddress = GetEchoString(window, iptext, round(disp.screenWidth*.25), disp.ycenter, [255, 255, 255], [0, 0, 0],[]);
     end
-    [sounddata soundfreq] = audioread(fullfile(cosanlabToolsPath,'SupportFunctions','Sounds','Bell_E5_1000ms.wav')); % Load Sound
-    PsychPortAudio('FillBuffer', pahandle, sounddata');
+    
+    % Write IP Address to file
+    fid = fopen(fullfile(fPath,'ipaddress.txt'),'w');
+    fprintf(fid,'%s\r\n',ipaddress);
+    fclose(fid);
+    ListenChar(1); %Start listening to keyboard again.
+    
+    % Start Connection
+    connection = tcpip(ipaddress, 30000, 'NetworkRole', 'client');
+    fopen(connection);
+    
+    % Test Connection
+    fwrite(connection, [nTrials, SUBID + 100, CONDITION],'double');
+    WaitSecs(.2)
+    
+    % Wait for signal from Computer 2 before proceeding
+    testcomplete = 0;
+    while testcomplete ~= 1
+        testcomplete = WaitForInput(connection,[1,1],.5);
+    end
 end
 
 if USE_THERMODE
@@ -306,6 +346,19 @@ if USE_BIOPAC
     end
         
     BIOPAC_PULSE_DUR = 1; %% this counts as TIME
+end
+
+if USE_SOUND
+    % Set up audio playback
+    % See http://www.scottfraundorf.com/matlab_audio.html#pc
+    InitializePsychSound(1); %inidializes sound driver...the 1 pushes for low latency
+    if ismac %laptop
+        pahandle = PsychPortAudio('Open', [], 1, [], 44100, 2, [], 0.015);
+    elseif ispc %CINC Computer
+        pahandle = PsychPortAudio('Open', [], 1, [], 44100, 2, [], 0.015);
+    end
+    [sounddata soundfreq] = audioread(fullfile(cosanlabToolsPath,'SupportFunctions','Sounds','Bell_E5_1000ms.wav')); % Load Sound
+    PsychPortAudio('FillBuffer', pahandle, sounddata');
 end
 
 if USE_VIDEO
@@ -335,58 +388,6 @@ if USE_VIDEO
     
 end
 
-if USE_NETWORK
-    ListenChar(2); %Stop listening to keyboard
-    Screen('TextSize',window, 20);
-    
-    % Load previous IPADDRESS
-    file_exist = exist(fullfile(fPath,'ipaddress.txt'),'file');
-    if file_exist == 2
-        fid = fopen(fullfile(fPath,'ipaddress.txt'),'rt');
-        tmp = textscan(fid,'%c','Delimiter','\n');
-        ipaddress = tmp{1}';
-        fclose(fid);
-        iptext = ['Set up network connection with laptop.\nIs this the correct IP Address from the laptop server? ' ipaddress '\n\n1 = "YES"\n\n2="NO"'];
-        Screen('TextSize',window, 28);
-        DrawFormattedText(window,iptext,'center','center',255);
-        Screen('Flip',window);
-        keycode(key.one) = 0; keycode(key.two) = 0;
-        while keycode(key.one) == 0 && keycode(key.two) == 0
-            [presstime keycode delta] = KbWait;
-        end
-        if keycode(key.one)
-            %             return;
-        else %IP address is incorrect
-            iptext = ['Please input the IP address from the laptop server (e.g. ' ipaddress ').'];
-            ipaddress = GetEchoString(window, iptext, round(disp.screenWidth*.25), disp.ycenter, [255, 255, 255], [0, 0, 0],[]);
-            WaitSecs(.2);
-            Screen('Flip',window);
-        end
-    else %no ipaddress file exists.
-        iptext = ['Set up network connection with laptop. Please input the IP address from the laptop server (e.g. ' ipaddress ').'];
-        ipaddress = GetEchoString(window, iptext, round(disp.screenWidth*.25), disp.ycenter, [255, 255, 255], [0, 0, 0],[]);
-    end
-    
-    % Write IP Address to file
-    fid = fopen(fullfile(fPath,'ipaddress.txt'),'w');
-    fprintf(fid,'%s\r\n',ipaddress);
-    fclose(fid);
-    ListenChar(1); %Start listening to keyboard again.
-    
-    % Start Connection
-    connection = tcpip(ipaddress, 30000, 'NetworkRole', 'client');
-    fopen(connection);
-    
-    % Test Connection
-    fwrite(connection, [nTrials, SUBID + 100, CONDITION],'double');
-    WaitSecs(.2)
-    
-    % Wait for signal from Computer 2 before proceeding
-    testcomplete = 0;
-    while testcomplete ~= 1
-        testcomplete = WaitForInput(connection,[1,1],.5);
-    end
-end
 
 %% Text for slides
 
