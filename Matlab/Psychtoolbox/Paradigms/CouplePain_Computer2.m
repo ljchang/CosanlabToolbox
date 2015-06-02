@@ -183,7 +183,7 @@ if USE_NETWORK
     fopen(connection)
     
     %%% Test Connection
-    dat_in = WaitForInput(connection, [1,3], 5);
+    dat_in = WaitForInput(connection, [1,3], 15);
     nTrials = dat_in(1);
     SUBID = dat_in(2);
     CONDITION = dat_in(3);
@@ -225,12 +225,12 @@ if USE_VIDEO
     c = ':CodecType=x264enc Keyframe=1: CodecSettings= Videoquality=1';
     
     % Settings for video recording
-    recFlag = 0 + 4 + 16 + 64; % [0,2]=sound off or on; [4] = disables internal processing; [16]=offload to separate processing thread; [64] = request timestamps in movie recording time instead of GetSecs() time:
+    recFlag = 2 + 4 + 16 + 64; % [0,2]=sound off or on; [4] = disables internal processing; [16]=offload to separate processing thread; [64] = request timestamps in movie recording time instead of GetSecs() time:
     
     % Initialize capture
     % Need to figure out how to change resolution and select webcam
     % videoPtr =Screen('OpenVideoCapture', windowPtr [, deviceIndex][, roirectangle][, pixeldepth][, numbuffers][, allowfallback][, targetmoviename][, recordingflags][, captureEngineType][, bitdepth=8]);
-    grabber = Screen('OpenVideoCapture', window, did(2), [], [], [], 1, fullfile(fPath,'Data',['Video_' num2str(SUBID) '_Condition' num2str(CONDITION) '.avi' c]), recFlag, 3, 8);
+    grabber = Screen('OpenVideoCapture', window, [], [0 0 640 480], [], [], 1, fullfile(fPath,'Data',['Video_' num2str(SUBID) '_Condition' num2str(CONDITION) '.avi' c]), recFlag, 3, 8);
     WaitSecs('YieldSecs', 2); %insert delay to allow video to spool up
     
 end
@@ -449,9 +449,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Screen('TextSize',window,72);
 DrawFormattedText(window,'END','center','center',255);
-WaitSecs('UntilTime',ENDSCREENDUR);
 timing.endscreen = Screen('Flip',window);
-WaitSecs(3);
+WaitSecs(ENDSCREENDUR);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% FINISH UP
