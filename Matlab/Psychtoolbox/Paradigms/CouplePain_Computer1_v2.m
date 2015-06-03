@@ -52,6 +52,7 @@
 
 %% GLOBAL PARAMETERS
 
+commandwindow;
 clear all; close all; fclose all;
 if ismac %laptop
     fPath = '/Users/canlab/Documents/RomanticCouples';
@@ -374,7 +375,7 @@ if USE_VIDEO
     % [builtinID, builtin_dev] = PsychGetCamIdForSpec('OSXAVFoundationVideoSource');
     % [logitechID, log_dev] = PsychGetCamIdForSpec('OSXAVFoundationVideoSource');
     
-    % Select Codec (can specify audio codec -alawenc)
+    % Select Codec (can specify audio codec alawenc)
     c = ':CodecType=x264enc Keyframe=1: CodecSettings= Videoquality=1';
     
     % Settings for video recording
@@ -383,7 +384,8 @@ if USE_VIDEO
     % Initialize capture
     % Need to figure out how to change resolution and select webcam
     % videoPtr =Screen('OpenVideoCapture', windowPtr [, deviceIndex][, roirectangle][, pixeldepth][, numbuffers][, allowfallback][, targetmoviename][, recordingflags][, captureEngineType][, bitdepth=8]);
-    grabber = Screen('OpenVideoCapture', window, [], [0 0 640 480], [], [], 1, fullfile(fPath,'Data',['Video_' num2str(SUBID) '_Condition' num2str(CONDITION) '.avi' c]), recFlag, 3, 8);
+    grabber = Screen('OpenVideoCapture', window, [], [0 0 320 240], [], [], 1, fullfile(fPath,'Data',['Video_' num2str(SUBID) '_Condition' num2str(CONDITION) '.avi' c]), recFlag, 3, 8);
+%     grabber = Screen('OpenVideoCapture', window, [], [0 0 640 480], [], [], 1, fullfile(fPath,'Data',['Video_' num2str(SUBID) '_Condition' num2str(CONDITION) '.avi' c]), recFlag, 3, 8);
     WaitSecs('YieldSecs', 2); %insert delay to allow video to spool up
     
 end
