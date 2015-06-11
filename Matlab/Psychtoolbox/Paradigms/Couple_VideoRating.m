@@ -44,10 +44,10 @@ function [position] = Couple_VideoRating(movie_name);
 
 % Devices
 USE_BIOPAC = 0;         % refers to Biopac make 0 if not running on computer with biopac
-USE_VIDEO = 1;          % record video of Run
+USE_VIDEO = 0;          % record video of Run
 USE_EYELINK = 0;        % eyetracking
 USE_SCANNER = 1;        % use trigger for scanning
-USE_MRISTIMULUS = 0;    % run on MRI Stimulus computer
+USE_MRISTIMULUS = 1;    % run on MRI Stimulus computer
 doHistory = 1;          % Show scrolling rating history
 
 % Set Path
@@ -83,7 +83,7 @@ screen = max(Screen('Screens'));
 % Settings
 STARTFIX = 4;
 ENDFIX = 10;
-text_size = 28;
+text_size = 24;
 anchor_size = 20;
 
 %% Set up keyboard input
@@ -176,43 +176,45 @@ if nargin < 1 %look for movies that match subject ID if not provided
     end
     Screen('TextSize',window, text_size);
     DrawFormattedText(window, movie_list_text,'center', 'center', 255);
+    SELECT_VIDEO = GetEchoString(window, [], rect(3)/2 - 300, rect(4)/2, [255, 255, 255], [0, 0, 0],[]);
+    SELECT_VIDEO = str2num(SELECT_VIDEO);
     Screen('Flip',window);
     
-    display(any(keycode))
-    display(find(keycode==1))
-    
-    % Clear keys
-    keycode=zeros(1,256);
-    
-    display(any(keycode))
-    display(find(keycode==1))
-    
-    % Wait for keypress
-    while keycode(key.zero)==0 && keycode(key.one)==0 && keycode(key.two)==0  && keycode(key.three)==0 && keycode(key.four)==0 && keycode(key.five)==0 && keycode(key.q) == 0
-        [presstime keycode delta] = KbWait(deviceNumber);
-    end
-    display(button)
-    button2 = find(keycode==1);
-    display(button2)
-    switch button2
-        case key.one
-            SELECT_VIDEO = 1;
-        case key.two
-            SELECT_VIDEO = 2;
-        case key.three
-            SELECT_VIDEO = 3;
-        case key.four
-            SELECT_VIDEO = 4;
-        case key.five
-            SELECT_VIDEO = 5;
-        case key.q % ESC key quits the experiment
-            ListenChar(1); %Start listening to keyboard again.
-            Screen('CloseAll');
-            ShowCursor;
-            Priority(0);
-            sca;
-            return;
-    end
+    %     display(any(keycode))
+    %     display(find(keycode==1))
+    %
+    %     % Clear keys
+    %     keycode=zeros(1,256);
+    %
+    %     display(any(keycode))
+    %     display(find(keycode==1))
+    %
+    %     % Wait for keypress
+    %     while keycode(key.zero)==0 && keycode(key.one)==0 && keycode(key.two)==0  && keycode(key.three)==0 && keycode(key.four)==0 && keycode(key.five)==0 && keycode(key.q) == 0
+    %         [presstime keycode delta] = KbWait(deviceNumber);
+    %     end
+    %     display(button)
+    %     button2 = find(keycode==1);
+    %     display(button2)
+    %     switch button2
+    %         case key.one
+    %             SELECT_VIDEO = 1;
+    %         case key.two
+    %             SELECT_VIDEO = 2;
+    %         case key.three
+    %             SELECT_VIDEO = 3;
+    %         case key.four
+    %             SELECT_VIDEO = 4;
+    %         case key.five
+    %             SELECT_VIDEO = 5;
+    %         case key.q % ESC key quits the experiment
+    %             ListenChar(1); %Start listening to keyboard again.
+    %             Screen('CloseAll');
+    %             ShowCursor;
+    %             Priority(0);
+    %             sca;
+    %             return;
+    %     end
     MOVIES = movie_name{SELECT_VIDEO};
     ListenChar(1); %Start listening to keyboard again.
 else
@@ -234,7 +236,7 @@ if file_exist == 2
     keycode(key.q) = 0;
     keycode(key.p) = 0;
     while(keycode(key.p) == 0 && keycode(key.q) == 0)
-        [presstime keycode delta] = KbWait;
+        [presstime keycode delta] = KbWait(deviceNumber);
     end
     
     % Q key quits the experiment, 'p' proceeds
@@ -351,14 +353,14 @@ end
 
 try
     % Show instructions...
-    Screen('TextSize',window, 36);
+    Screen('TextSize',window, text_size);
     DrawFormattedText(window,instruct,'center','center',255);
     Screen('Flip',window);
     
     % wait for experimenter to press spacebar
     keycode(key.space) = 0;
     while keycode(key.space) == 0
-        [presstime keycode delta] = KbWait;
+        [presstime keycode delta] = KbWait(deviceNumber);
     end
     
     %Wait for Scanner trigger
@@ -368,15 +370,15 @@ try
         WaitSecs(.2);
         keycode(key.space) = 0;
         while keycode(key.space) == 0
-            [presstime keycode delta] = KbWait;
+            [presstime keycode delta] = KbWait(deviceNumber);
         end
-        
+        Screen('TextSize',window, text_size);
         DrawFormattedText(window,'Waiting for trigger from scanner.','center','center',255);
         Screen('Flip',window);
         WaitSecs(.2);
         keycode(key.ttl) = 0;
         while keycode(key.ttl)==0
-            [presstime keycode delta] = KbWait;
+            [presstime keycode delta] = KbWait(deviceNumber);
         end
     else
         DrawFormattedText(window,'Press ''SPACE'' key to begin experiment','center','center',255);
@@ -384,7 +386,7 @@ try
         WaitSecs(.2);
         keycode(key.space) = 0;
         while keycode(key.space) == 0
-            [presstime keycode delta] = KbWait;
+            [presstime keycode delta] = KbWait(deviceNumber);
         end
     end
     
@@ -538,7 +540,7 @@ try
             
             % Add Text Anchors
             Screen('TextFont', window, 'Helvetica Light');
-            Screen('TextSize', window, 20);
+            Screen('TextSize', window, anchor_size);
             DrawFormattedText(window, uTextAnchor, leftb, ub - 25, [255 255 255]);
             DrawFormattedText(window, lTextAnchor, leftb, lb, [255 255 255]);
             
@@ -547,10 +549,11 @@ try
         end
         
         % Done with drawing. Check the keyboard for subjects response:
-        [keyIsDown, secs, keyCode]=KbCheck;
+        [keyIsDown, secs, keyCode]=KbCheck(deviceNumber);
+        
         if (keyIsDown==1)
             % Abort requested?
-            if keyCode(esc)
+            if keyCode(key.esc)
                 % This signals abortion:
                 rejecttrial=-1;
                 % Break out of display loop:
