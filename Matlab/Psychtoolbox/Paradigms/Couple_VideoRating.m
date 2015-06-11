@@ -41,6 +41,7 @@ function [position] = Couple_VideoRating(movie_name);
 
 %% Setup paradigm
 
+
 % Devices
 USE_BIOPAC = 0;         % refers to Biopac make 0 if not running on computer with biopac
 USE_VIDEO = 1;          % record video of Run
@@ -58,6 +59,7 @@ end
 cosanlabToolsPath = fullfile(fPath, 'Cosanlabtoolbox/Matlab/Psychtoolbox');
 addpath(genpath(fullfile(cosanlabToolsPath,'SupportFunctions')));
 
+commandwindow;
 
 % initialize mouse recording output
 position = [];
@@ -105,10 +107,9 @@ key.one = KbName('1!');
 key.two = KbName('2@');
 key.three = KbName('3#');
 key.four = KbName('4$');
+key.five = KbName('5%');
 
-RestrictKeysForKbCheck([key.space, key.s, key.p, key.q, key.esc, key.zero, key.one, key.two, key.three, key.four,key.ttl]);
-% List of Emotions
-emotions = {'How much guilt do you feel?','How much anger do you feel?', 'How anxious do you feel?', 'How much happiness do you feel?', 'How much pride do you feel?', 'How much disgust do you feel?', 'How much sadness do you feel?', 'How much shame','How connected do you feel?'};
+RestrictKeysForKbCheck([key.space, key.s, key.p, key.q, key.esc, key.zero, key.one, key.two, key.three, key.four, key.five, key.ttl]);
 
 %% Enter Subject Information
 
@@ -122,7 +123,7 @@ ListenChar(1); %Start listening to keyboard again.
 
 % Select Condition to Run
 ListenChar(2); %Stop listening to keyboard
-Screen('TextSize',window, 28);
+Screen('TextSize',window, text_size);
 DrawFormattedText(window,'Experimenter: Which condition do you want to run?\n\n0: Scanner\n1: Self\n2: Other\nq: Quit','center','center',255);
 Screen('Flip',window);
 
@@ -133,7 +134,7 @@ for k = 1:length(key_name)
 end
 
 % Wait for keypress
-while keycode(key.zero)==0 && keycode(key.one)==0 && keycode(key.two)==0  && keycode(key.three)==0 && keycode(key.four)==0 && keycode(key.q) == 0
+while keycode(key.zero)==0 && keycode(key.one)==0 && keycode(key.two)==0  && keycode(key.q) == 0
     [presstime keycode delta] = KbWait;
 end
 button = find(keycode==1);
@@ -144,10 +145,6 @@ switch button
         CONDITION = 1;
     case key.two
         CONDITION = 2;
-    case key.three
-        CONDITION = 3;
-    case key.four
-        CONDITION = 4;
     case key.q % ESC key quits the experiment
         Screen('CloseAll');
         ShowCursor;
@@ -155,7 +152,67 @@ switch button
         sca;
         return;
 end
+% ListenChar(1); %Start listening to keyboard again.
+
+% Select Video File To Play
+% ListenChar(2); %Stop listening to keyboard
+movie_list = rdir(fullfile(fPath,'Videos','*mp4'));
+f_name = cellstr(strvcat(movie_list.name));
+wh_file = strfind(f_name,['/' num2str(SUBID)]);
+movie_name = cellstr(strvcat(f_name{logical(~cellfun(@isempty,wh_file))}));
+movie_list_text = 'Which clip do you want to show?\n';
+if ~isempty(movie_list)
+    for m = 1:length(movie_name)
+        [p,n,e] = fileparts(movie_name{m});
+        movie_list_text = [movie_list_text '\n' num2str(m) ': ' n e];
+    end
+    movie_list_text = [movie_list_text '\nq: Quit program.'];
+else
+    movie_list_text = [movie_list_text '\nNo .mp4 movies found with subject ID' num2str(SUBID) '\nPress "q" to quit program.'];
+end
+Screen('TextSize',window, text_size);
+DrawFormattedText(window, movie_list_text,'center', 'center', 255);
+Screen('Flip',window);
+
+% Clear keys
+key_name = fieldnames(key);
+for k = 1:length(key_name)
+    keycode(key.(key_name{k}))=0;
+end
+
+% Wait for keypress
+while keycode(key.zero)==0 && keycode(key.one)==0 && keycode(key.two)==0  && keycode(key.three)==0 && keycode(key.four)==0 && keycode(key.five)==0 && keycode(key.q) == 0
+    [presstime keycode delta] = KbWait;
+end
+button = find(keycode==1);
+switch button
+    case key.one
+        select_video = 1;
+    case key.two
+        select_video = 2;
+    case key.three
+        select_video = 3;
+    case key.four
+        select_video = 4;
+    case key.five
+        select_video = 5;
+    case key.q % ESC key quits the experiment
+        Screen('CloseAll');
+        ShowCursor;
+        Priority(0);
+        sca;
+        return;
+end
+
+MOVIES = movie_name{select_video};
+
+% Create MOVIE list (will randomize order based on SUBID
+f_exist = which(test_vid);
+if f_exist ~= 2
+    error('Make sure video clip is a real file on your matlab search path.')
+end
 ListenChar(1); %Start listening to keyboard again.
+
 
 % Check if data file exists.  If so ask if we want to rerun, if not then quit and check subject ID.
 file_exist = exist(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CONDITION) '_Continuous_VideoRating.csv']),'file');
@@ -258,30 +315,30 @@ end
 
 %% Load Movies
 
-if nargin < 1 %look for movies that match subject ID if not provided
-    movie_list = rdir(fullfile(fPath,'Videos','*mp4'));
-    f_name = cellstr(strvcat(movie_list.name));
-    wh_file = strfind(f_name,['/' num2str(SUBID)]);
-    movie_name = f_name{~cellfun(@isempty,wh_file)};
-end;
-
-f_exist = which(movie_name);
-if f_exist ~= 2
-    error('Make sure movie file is a real file on your matlab search path.')
-end
-
-% Create MOVIE list (will randomize order based on SUBID
-test_vid = fullfile(fPath,'Videos','TestVideo.mp4');
-f_exist = which(test_vid);
-if f_exist ~= 2
-    error('Make sure test video file is a real file on your matlab search path.')
-end
-if rem(SUBID,2)
-    MOVIES = {movie_name,test_vid};
-else
-    MOVIES = {test_vid,movie_name};
-end
-
+% if nargin < 1 %look for movies that match subject ID if not provided
+%     movie_list = rdir(fullfile(fPath,'Videos','*mp4'));
+%     f_name = cellstr(strvcat(movie_list.name));
+%     wh_file = strfind(f_name,['/' num2str(SUBID)]);
+%     movie_name = f_name{~cellfun(@isempty,wh_file)};
+% end;
+% 
+% f_exist = which(movie_name);
+% if f_exist ~= 2
+%     error('Make sure movie file is a real file on your matlab search path.')
+% end
+% 
+% % Create MOVIE list (will randomize order based on SUBID
+% test_vid = fullfile(fPath,'Videos','TestVideo.mp4');
+% f_exist = which(test_vid);
+% if f_exist ~= 2
+%     error('Make sure test video file is a real file on your matlab search path.')
+% end
+% if rem(SUBID,2)
+%     MOVIES = {movie_name,test_vid};
+% else
+%     MOVIES = {test_vid,movie_name};
+% end
+% 
 
 %% Set up screens
 
