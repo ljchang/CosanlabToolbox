@@ -111,12 +111,13 @@ key.five = KbName('5%');
 
 RestrictKeysForKbCheck([key.space, key.s, key.p, key.q, key.esc, key.zero, key.one, key.two, key.three, key.four, key.five, key.ttl]);
 
-deviceNumber=GetKeyboardIndices;
-deviceNumber=deviceNumber(1); % Might need to change depending on how many devices are connected.
+kbList=GetKeyboardIndices;
+deviceNumber=kbList(1); % Might need to change depending on how many devices are connected.
+scannerID = kbList(2);
 
 emotions = {'How much guilt do you feel?','How much anger do you feel?', 'How anxious do you feel?', 'How much happiness do you feel?', 'How much pride do you feel?', 'How much disgust do you feel?', 'How much sadness do you feel?', 'How much shame','How connected do you feel?'};
 
-%% Enter Subject Information
+%% Enter Subject Informatio5n
 
 % Enter Subject ID
 ListenChar(2); %Stop listening to keyboard
@@ -375,10 +376,10 @@ try
         Screen('TextSize',window, text_size);
         DrawFormattedText(window,'Waiting for trigger from scanner.','center','center',255);
         Screen('Flip',window);
-        WaitSecs(.2);
+        WaitSecs(.2);5
         keycode(key.ttl) = 0;
         while keycode(key.ttl)==0
-            [presstime keycode delta] = KbWait(deviceNumber);
+            [presstime keycode delta] = KbWait(scannerID);
         end
     else
         DrawFormattedText(window,'Press ''SPACE'' key to begin experiment','center','center',255);
@@ -558,6 +559,8 @@ try
                 rejecttrial=-1;
                 % Break out of display loop:
                 break;
+            elseif keyCode(key.five)
+                % Pass
             end;
         end
         
