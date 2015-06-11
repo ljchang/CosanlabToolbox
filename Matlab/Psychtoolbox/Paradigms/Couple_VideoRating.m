@@ -40,13 +40,14 @@ function [position] = Couple_VideoRating(movie_name);
 %2) Need to make sure that rating fits with video.
 
 %% Setup paradigm
+commandwindow
 
 % Devices
 USE_BIOPAC = 0;         % refers to Biopac make 0 if not running on computer with biopac
 USE_VIDEO = 1;          % record video of Run
 USE_EYELINK = 0;        % eyetracking
 USE_SCANNER = 1;        % use trigger for scanning
-USE_MRISTIMULUS = 0;    % run on MRI Stimulus computer
+USE_MRISTIMULUS = 1;    % run on MRI Stimulus computer
 doHistory = 1;          % Show scrolling rating history
 
 % Set Path
@@ -72,7 +73,9 @@ background=[0, 0, 0];
 
 % Open onscreen window. We use the display with the highest number on
 % multi-display setups:
-screen=max(Screen('Screens'));
+% screen=max(Screen('Screens'));
+screen=min(Screen('Screens'));
+
 
 % This will open a screen with background color 'background':
 % [window rect] = Screen('OpenWindow', screen, background, [0 0 1200 900]);
@@ -81,19 +84,19 @@ screen=max(Screen('Screens'));
 % Settings
 STARTFIX = 4;
 ENDFIX = 10;
-text_size = 28;
+text_size = 24;
 anchor_size = 20;
 
 %% Set up keyboard input
 
 % Hide the mouse cursor:
-HideCursor;
+% HideCursor;
 
 % Initialize Keyboard inputs
 KbName('UnifyKeyNames');
 
-% Query keycodes for ESCAPE key and Space key:
 
+% Query keycodes for ESCAPE key and Space key:
 key.space = KbName('SPACE');
 key.ttl = KbName('5%');
 key.s = KbName('s');
@@ -107,7 +110,9 @@ key.three = KbName('3#');
 key.four = KbName('4$');
 
 RestrictKeysForKbCheck([key.space, key.s, key.p, key.q, key.esc, key.zero, key.one, key.two, key.three, key.four,key.ttl]);
-% List of Emotions
+deviceNumber=GetKeyboardIndices;
+deviceNumber=deviceNumber(1); % Might need to change depending on how many devices are connected.
+
 emotions = {'How much guilt do you feel?','How much anger do you feel?', 'How anxious do you feel?', 'How much happiness do you feel?', 'How much pride do you feel?', 'How much disgust do you feel?', 'How much sadness do you feel?', 'How much shame','How connected do you feel?'};
 
 %% Enter Subject Information
@@ -126,7 +131,6 @@ Screen('TextSize',window, 28);
 DrawFormattedText(window,'Experimenter: Which condition do you want to run?\n\n0: Scanner\n1: Self\n2: Other\nq: Quit','center','center',255);
 Screen('Flip',window);
 
-% Clear keys
 key_name = fieldnames(key);
 for k = 1:length(key_name)
     keycode(key.(key_name{k}))=0;
@@ -134,7 +138,7 @@ end
 
 % Wait for keypress
 while keycode(key.zero)==0 && keycode(key.one)==0 && keycode(key.two)==0  && keycode(key.three)==0 && keycode(key.four)==0 && keycode(key.q) == 0
-    [presstime keycode delta] = KbWait;
+    [presstime keycode delta] = KbWait(deviceNumber);
 end
 button = find(keycode==1);
 switch button
