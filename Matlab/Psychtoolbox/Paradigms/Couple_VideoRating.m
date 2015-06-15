@@ -44,11 +44,11 @@ function [position] = Couple_VideoRating(movie_name);
 
 % Devices
 USE_BIOPAC = 0;         % refers to Biopac make 0 if not running on computer with biopac
-USE_VIDEO = 0;          % record video of Run
+USE_VIDEO = 1;          % record video of Run
 USE_EYELINK = 0;        % eyetracking
 USE_SCANNER = 1;        % use trigger for scanning
-USE_MRISTIMULUS = 1;    % run on MRI Stimulus computer
-doHistory = 1;          % Show scrolling rating history
+USE_MRISTIMULUS = 0;    % run on MRI Stimulus computer
+doHistory = 0;          % Show scrolling rating history
 
 % Set Path
 if USE_MRISTIMULUS
@@ -113,8 +113,9 @@ RestrictKeysForKbCheck([key.space, key.s, key.p, key.q, key.esc, key.zero, key.o
 
 kbList=GetKeyboardIndices;
 deviceNumber=kbList(1); % Might need to change depending on how many devices are connected.
-scannerID = kbList(2);
-
+if USE_MRISTIMULUS
+    scannerID = kbList(2);
+end
 emotions = {'How much guilt do you feel?','How much anger do you feel?', 'How anxious do you feel?', 'How much happiness do you feel?', 'How much pride do you feel?', 'How much disgust do you feel?', 'How much sadness do you feel?', 'How much shame','How connected do you feel?'};
 
 %% Enter Subject Informatio5n
@@ -181,41 +182,6 @@ if nargin < 1 %look for movies that match subject ID if not provided
     SELECT_VIDEO = str2num(SELECT_VIDEO);
     Screen('Flip',window);
     
-    %     display(any(keycode))
-    %     display(find(keycode==1))
-    %
-    %     % Clear keys
-    %     keycode=zeros(1,256);
-    %
-    %     display(any(keycode))
-    %     display(find(keycode==1))
-    %
-    %     % Wait for keypress
-    %     while keycode(key.zero)==0 && keycode(key.one)==0 && keycode(key.two)==0  && keycode(key.three)==0 && keycode(key.four)==0 && keycode(key.five)==0 && keycode(key.q) == 0
-    %         [presstime keycode delta] = KbWait(deviceNumber);
-    %     end
-    %     display(button)
-    %     button2 = find(keycode==1);
-    %     display(button2)
-    %     switch button2
-    %         case key.one
-    %             SELECT_VIDEO = 1;
-    %         case key.two
-    %             SELECT_VIDEO = 2;
-    %         case key.three
-    %             SELECT_VIDEO = 3;
-    %         case key.four
-    %             SELECT_VIDEO = 4;
-    %         case key.five
-    %             SELECT_VIDEO = 5;
-    %         case key.q % ESC key quits the experiment
-    %             ListenChar(1); %Start listening to keyboard again.
-    %             Screen('CloseAll');
-    %             ShowCursor;
-    %             Priority(0);
-    %             sca;
-    %             return;
-    %     end
     MOVIES = movie_name{SELECT_VIDEO};
     ListenChar(1); %Start listening to keyboard again.
 else
@@ -301,20 +267,11 @@ end
 
 if USE_VIDEO
     
-    %     % Device info
-    %     devs = Screen('VideoCaptureDevices');
-    %     did = [];
-    %     for i=1:length(devs)
-    %         if devs(i).InputIndex==0
-    %             did = [did,devs(i).DeviceIndex];
-    %         end
-    %     end
-    
     % Select Codec
     c = ':CodecType=x264enc Keyframe=1: CodecSettings= Videoquality=1';
     
     % Settings for video recording
-    recFlag = 2 + 4 + 16 + 64; % [0,2]=sound off or on; [4] = disables internal processing; [16]=offload to separate processing thread; [64] = request timestamps in movie recording time instead of GetSecs() time:
+    recFlag = 0 + 4 + 16 + 64; % [0,2]=sound off or on; [4] = disables internal processing; [16]=offload to separate processing thread; [64] = request timestamps in movie recording time instead of GetSecs() time:
     
     % Initialize capture
     % Need to figure out how to change resolution and select webcam
@@ -515,8 +472,8 @@ try
             position = [position ; x, y, t, (y-lb)/(ub-lb)];
             
             % Text Anchors
-            uTextAnchor = 'Positive';
-            lTextAnchor = 'Negative';
+            uTextAnchor = 'Negative';
+            lTextAnchor = 'Positive';
             
             % Create Rating Lines
             rateLineArray = [leftb rightb leftb rightb leftb+5 rightb-5 (leftb + ((rightb-leftb)/2)) (leftb + ((rightb-leftb)/2)) leftb rightb; ub ub lb lb (ub + ((lb-ub)/2)) (ub + ((lb-ub)/2)) ub lb y y];
