@@ -115,10 +115,12 @@ kbList=GetKeyboardIndices;
 deviceNumber=kbList(1); % Might need to change depending on how many devices are connected.
 if USE_MRISTIMULUS
     scannerID = kbList(2);
+else
+    scannerID = deviceNumber;
 end
 emotions = {'How much guilt do you feel?','How much anger do you feel?', 'How anxious do you feel?', 'How much happiness do you feel?', 'How much pride do you feel?', 'How much disgust do you feel?', 'How much sadness do you feel?', 'How much shame','How connected do you feel?'};
 
-%% Enter Subject Informatio5n
+%% Enter Subject Information
 
 % Enter Subject ID
 ListenChar(2); %Stop listening to keyboard
@@ -131,7 +133,7 @@ ListenChar(1); %Start listening to keyboard again.
 % Select Condition to Run
 ListenChar(2); %Stop listening to keyboard
 Screen('TextSize',window, text_size);
-DrawFormattedText(window,'Experimenter: Which condition do you want to run?\n\n0: Scanner\n1: Self\n2: Other\nq: Quit','center','center',255);
+DrawFormattedText(window,'Experimenter: Which condition do you want to run?\n\n0: Scanner Self\n1: Laptop Self\n2: Laptop Partner\n3: Laptop Other\nq: Quit','center','center',255);
 Screen('Flip',window);
 
 % Clear keys
@@ -149,6 +151,8 @@ switch button
         CONDITION = 1;
     case key.two
         CONDITION = 2;
+    case key.three
+        CONDITION = 3;
     case key.q % ESC key quits the experiment
         ListenChar(1); %Start listening to keyboard again.
         Screen('CloseAll');
@@ -218,14 +222,16 @@ end
 ListenChar(1); %Start listening to keyboard again.
 
 %Initialize File with Header
-%Continous Rating
-hdr = 'Subject,Condition,Video,PositionX,PositionY,Timing,Rating';
-dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CONDITION) '_Video' num2str(SELECT_VIDEO) '_Continuous_VideoRating.csv']), hdr,'')
-
-%Trial Emotion Ratings
-hdr2 = 'Subject,Condition,Video,GuiltOnset,GuiltOffset,GuiltDur,GuiltRating,AngerOnset,AngerOffset,AngerDur,AngerRating,AnxiousOnset,AnxiousOffset,AnxiousDur,AnxiousRating,HappinessOnset,HappinessOffset,HappinessDur,HappinessRating,PrideOnset,PrideOffset,PrideDur,PrideRating,DisgustOnset,DisgustOffset,DisgustDur,DisgustRating,SadnessOnset,SadnessOffset,SadnessDur,SadnessRating,ShameOnset,ShameOffset,ShameDur,ShameRating,ConnectedOnset,ConnectedOffset,ConnectedDur,ConnectedRating';
-dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CONDITION) '_Video' num2str(SELECT_VIDEO) '_Trial_VideoRating.csv']), hdr2,'')
-
+if CONDITION ~= 0
+    
+    %Continous Rating
+    hdr = 'Subject,Condition,Video,PositionX,PositionY,Timing,Rating';
+    dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CONDITION) '_Video' num2str(SELECT_VIDEO) '_Continuous_VideoRating.csv']), hdr,'')
+    
+    %Trial Emotion Ratings
+    hdr2 = 'Subject,Condition,Video,GuiltOnset,GuiltOffset,GuiltDur,GuiltRating,AngerOnset,AngerOffset,AngerDur,AngerRating,AnxiousOnset,AnxiousOffset,AnxiousDur,AnxiousRating,HappinessOnset,HappinessOffset,HappinessDur,HappinessRating,PrideOnset,PrideOffset,PrideDur,PrideRating,DisgustOnset,DisgustOffset,DisgustDur,DisgustRating,SadnessOnset,SadnessOffset,SadnessDur,SadnessRating,ShameOnset,ShameOffset,ShameDur,ShameRating,ConnectedOnset,ConnectedOffset,ConnectedDur,ConnectedRating';
+    dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CONDITION) '_Video' num2str(SELECT_VIDEO) '_Trial_VideoRating.csv']), hdr2,'')
+end
 
 %% Set up Devices
 
@@ -261,12 +267,9 @@ if USE_EYELINK
 end
 
 % Don't use video if running in the scanner.
-if CONDITION == 0
-    USE_VIDEO = 0;
-end
+if CONDITION == 0; USE_VIDEO = 0; end
 
-if USE_VIDEO
-    
+if USE_VIDEO  
     % Select Codec
     c = ':CodecType=x264enc Keyframe=1: CodecSettings= Videoquality=1';
     
@@ -300,11 +303,13 @@ DrawFormattedText(disp.fixation.w,'+','center','center',255); % add text
 
 switch CONDITION
     case 0
-        instruct = 'You will watch a video clip of you and your partner while you are being scanned.\n\nPlease rate how the video makes you feel continously at every moment.\n\nPress ''space'' to continue or ''ESC'' to quit';
+        instruct = 'You will watch a video clip of either you and your partner or another couple while you are being scanned.\n\nPlease try to keep you head as still as possible.\n\nPress ''space'' to continue or ''ESC'' to quit';
     case 1
-        instruct = 'You will watch a video clip of you and your partner.\n\nPlease rate how you are feeling in the video continously at every moment.\n\nPress ''space'' to continue or ''ESC'' to quit';
+        instruct = 'You will watch a video clip of you and your partner.\n\nPlease rate how you think you were feeling in the video continously at each moment.\n\nPress ''space'' to continue or ''ESC'' to quit';
     case 2
-        instruct = 'You will watch a video clip of you and your partner.\n\nPlease rate how you think your partner is feeling continously at every moment.\n\nPress ''space'' to continue or ''ESC'' to quit';
+        instruct = 'You will watch a video clip of you and your partner.\n\nPlease rate how you think your partner was feeling in the video continously at each moment.\n\nPress ''space'' to continue or ''ESC'' to quit';
+    case 3
+        instruct = 'You will watch a video clip of another couple.\n\nPlease rate how you are feeling watching the video continously at each moment.\n\nPress ''space'' to continue or ''ESC'' to quit';
 end
 
 %% Run Paradigm
@@ -333,7 +338,7 @@ try
         Screen('TextSize',window, text_size);
         DrawFormattedText(window,'Waiting for trigger from scanner.','center','center',255);
         Screen('Flip',window);
-        WaitSecs(.2);5
+        WaitSecs(.2);
         keycode(key.ttl) = 0;
         while keycode(key.ttl)==0
             [presstime keycode delta] = KbWait(scannerID);
@@ -540,7 +545,7 @@ try
     % Check if aborted.
     if (rejecttrial==-1)
         % Break out of trial loop
-        RETURN;
+        return;
     end;
     
     % Wait for subject to release keys:
@@ -565,8 +570,10 @@ try
         end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
+        if CONDITION ~= 0
         % Append data to file after every trial
         dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CONDITION) '_Video' num2str(SELECT_VIDEO) '_Trial_VideoRating.csv']), trial_out, 'delimiter',',','-append','precision',10)
+        end
     end
     
     % put up end fixation
@@ -574,7 +581,6 @@ try
     startfix = Screen('Flip',window);
     WaitSecs(ENDFIX);
     
-    %     end
     
     %% Done with the experiment. Close onscreen window and finish.
     
