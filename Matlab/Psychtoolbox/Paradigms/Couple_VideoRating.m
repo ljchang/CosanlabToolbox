@@ -305,11 +305,11 @@ switch CONDITION
     case 0
         instruct = 'You will watch a video clip of either you and your partner or another couple while you are being scanned.\n\nPlease try to keep you head as still as possible.\n\nPress ''space'' to continue or ''ESC'' to quit';
     case 1
-        instruct = 'You will watch a video clip of you and your partner.\n\nPlease rate how you think you were feeling in the video continously at each moment.\n\nPress ''space'' to continue or ''ESC'' to quit';
+        instruct = 'You will watch a video clip of you and your partner.\n\nPlease rate how you think you were feeling in the video continuously at each moment.\n\nPress ''space'' to continue or ''ESC'' to quit';
     case 2
-        instruct = 'You will watch a video clip of you and your partner.\n\nPlease rate how you think your partner was feeling in the video continously at each moment.\n\nPress ''space'' to continue or ''ESC'' to quit';
+        instruct = 'You will watch a video clip of you and your partner.\n\nPlease rate how you think your partner was feeling in the video continuously at each moment.\n\nPress ''space'' to continue or ''ESC'' to quit';
     case 3
-        instruct = 'You will watch a video clip of another couple.\n\nPlease rate how you are feeling watching the video continously at each moment.\n\nPress ''space'' to continue or ''ESC'' to quit';
+        instruct = 'You will watch a video clip of another couple.\n\nPlease rate how you are feeling watching the video continuously at each moment.\n\nPress ''space'' to continue or ''ESC'' to quit';
 end
 
 %% Run Paradigm
