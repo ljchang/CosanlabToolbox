@@ -9,7 +9,7 @@
 %
 % Developed by Luke Chang, Briana Robustelli, Mark Whisman, Tor Wager
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (c) 2014 Luke Chang
 %
 % Permission is hereby granted, free of charge, to any person obtaining a
