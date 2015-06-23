@@ -54,7 +54,8 @@ doHistory = 0;          % Show scrolling rating history
 if USE_MRISTIMULUS
     fPath = '/Users/mristimulus/Desktop/RomanticCouples_Video';
 else
-    fPath = '/Users/lukechang/Dropbox/Doctor_Patient_Andrew/CoupleVideo';
+    fPath = '/Users/canlab/Desktop/RomanticCouples_Video';
+%     fPath = '/Users/lukechang/Dropbox/Doctor_Patient_Andrew/CoupleVideo';
 end
 cosanlabToolsPath = fullfile(fPath, 'Cosanlabtoolbox/Matlab/Psychtoolbox');
 addpath(genpath(fullfile(cosanlabToolsPath,'SupportFunctions')));
