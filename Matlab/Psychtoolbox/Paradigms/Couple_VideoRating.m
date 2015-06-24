@@ -44,10 +44,10 @@ function [position] = Couple_VideoRating(movie_name);
 
 % Devices
 USE_BIOPAC = 0;         % refers to Biopac make 0 if not running on computer with biopac
-USE_VIDEO = 1;          % record video of Run
+USE_VIDEO = 0;          % record video of Run
 USE_EYELINK = 0;        % eyetracking
 USE_SCANNER = 1;        % use trigger for scanning
-USE_MRISTIMULUS = 0;    % run on MRI Stimulus computer
+USE_MRISTIMULUS = 1;    % run on MRI Stimulus computer
 doHistory = 0;          % Show scrolling rating history
 
 % Set Path
@@ -82,8 +82,8 @@ screen = max(Screen('Screens'));
 [window rect] = Screen('OpenWindow', screen, background);
 
 % Settings
-STARTFIX = 4;
-ENDFIX = 10;
+STARTFIX = 15;
+ENDFIX = 15;
 text_size = 24;
 anchor_size = 20;
 
@@ -113,9 +113,10 @@ key.five = KbName('5%');
 RestrictKeysForKbCheck([key.space, key.s, key.p, key.q, key.esc, key.zero, key.one, key.two, key.three, key.four, key.five, key.ttl]);
 
 kbList=GetKeyboardIndices;
-deviceNumber=kbList(1); % Might need to change depending on how many devices are connected.
 if USE_MRISTIMULUS
-    scannerID = kbList(2);
+    scannerID = -1;
+    %     scannerID = kbList(2);
+    deviceNumber=kbList(1); % Might need to change depending on how many devices are connected.
 else
     scannerID = deviceNumber;
 end
@@ -134,7 +135,7 @@ ListenChar(1); %Start listening to keyboard again.
 % Select Condition to Run
 ListenChar(2); %Stop listening to keyboard
 Screen('TextSize',window, text_size);
-DrawFormattedText(window,'Experimenter: Which condition do you want to run?\n\n0: Scanner Self\n1: Laptop Self\n2: Laptop Partner\n3: Laptop Other\nq: Quit','center','center',255);
+DrawFormattedText(window,'Experimenter: Which condition do you want to run?\n\n0: Scanner\n1: Laptop Self\n2: Laptop Partner\n3: Laptop Other\nq: Quit','center','center',255);
 Screen('Flip',window);
 
 % Clear keys
@@ -169,7 +170,7 @@ if nargin < 1 %look for movies that match subject ID if not provided
     ListenChar(2); %Stop listening to keyboard
     movie_list = rdir(fullfile(fPath,'Videos','*mp4'));
     f_name = cellstr(strvcat(movie_list.name));
-    wh_file = strfind(f_name,['/' num2str(SUBID)]);
+    wh_file = strfind(f_name,num2str(SUBID));
     movie_name = cellstr(strvcat(f_name{logical(~cellfun(@isempty,wh_file))}));
     if length(movie_name) > 1 && ~isempty(movie_name{1})
         movie_list_text = 'Which clip do you want to show?\n';
@@ -180,6 +181,22 @@ if nargin < 1 %look for movies that match subject ID if not provided
         movie_list_text = [movie_list_text '\nq: Quit program.'];
     else
         movie_list_text = ['\nNo .mp4 movies found with subject ID: ' num2str(SUBID) '\n\nPress "q" to quit program.'];
+        
+        % Clear keys
+        keycode=zeros(1,256);
+        
+        % Wait for keypress
+        while keycode(key.zero)==0 && keycode(key.one)==0 && keycode(key.two)==0  && keycode(key.q) == 0
+            [presstime keycode delta] = KbWait(deviceNumber);
+        end
+        % Q key quits the experiment, 'p' proceeds
+        if keycode(key.q) == 1
+            Screen('CloseAll');
+            ShowCursor;
+            Priority(0);
+            sca;
+            return;
+        end
     end
     Screen('TextSize',window, text_size);
     DrawFormattedText(window, movie_list_text,'center', 'center', 255);
@@ -270,7 +287,7 @@ end
 % Don't use video if running in the scanner.
 if CONDITION == 0; USE_VIDEO = 0; end
 
-if USE_VIDEO  
+if USE_VIDEO
     % Select Codec
     c = ':CodecType=x264enc Keyframe=1: CodecSettings= Videoquality=1';
     
@@ -304,7 +321,7 @@ DrawFormattedText(disp.fixation.w,'+','center','center',255); % add text
 
 switch CONDITION
     case 0
-        instruct = 'You will watch a video clip of either you and your partner or another couple while you are being scanned.\n\nPlease try to keep you head as still as possible.\n\nPress ''space'' to continue or ''ESC'' to quit';
+        instruct = 'You will watch a video clip of either you and your partner\n\n or another couple while you are being scanned.\n\nPlease try to keep you head as still as possible.\n\nPress ''space'' to continue or ''ESC'' to quit';
     case 1
         instruct = 'You will watch a video clip of you and your partner.\n\nPlease rate how you think you were feeling in the video continuously at each moment.\n\nPress ''space'' to continue or ''ESC'' to quit';
     case 2
@@ -342,7 +359,8 @@ try
         WaitSecs(.2);
         keycode(key.ttl) = 0;
         while keycode(key.ttl)==0
-            [presstime keycode delta] = KbWait(scannerID);
+            %             [presstime keycode delta] = KbWait(scannerID);
+            [presstime keycode delta] = KbWait(scannerID); %try waiting for all keyboards and keypads
         end
     else
         DrawFormattedText(window,'Press ''SPACE'' key to begin experiment','center','center',255);
@@ -572,8 +590,8 @@ try
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
         if CONDITION ~= 0
-        % Append data to file after every trial
-        dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CONDITION) '_Video' num2str(SELECT_VIDEO) '_Trial_VideoRating.csv']), trial_out, 'delimiter',',','-append','precision',10)
+            % Append data to file after every trial
+            dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CONDITION) '_Video' num2str(SELECT_VIDEO) '_Trial_VideoRating.csv']), trial_out, 'delimiter',',','-append','precision',10)
         end
     end
     
