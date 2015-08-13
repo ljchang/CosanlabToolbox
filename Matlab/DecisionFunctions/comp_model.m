@@ -470,7 +470,7 @@ classdef comp_model < handle & design_matrix
             params = obj.params(:,2:length(obj.param_min)+ 1);
             
         end
-                    
+        
         function summary = summary(obj,varargin)
             % summary = summary(obj)
             %
@@ -480,7 +480,7 @@ classdef comp_model < handle & design_matrix
             % column. Also returns average AIC, average BIC, average final
             % minimized value, and number of subjects.
             % -------------------------------------------------------------------------
-                           
+            
             sprintf(['Summary of Model: ' obj.model ...
                 '\n-----------------------------------------' ...
                 '\nAverage Parameters:\t' num2str(nanmean(obj.params(:,2:length(obj.param_min) + 1))) ...
@@ -492,7 +492,7 @@ classdef comp_model < handle & design_matrix
             
         end
         
-        function f1 = plot(obj, columns, varargin)
+        function f1 = plot(obj, columns, xAxisColumn,varargin)
             % f1 = plot(obj)
             %
             % -------------------------------------------------------------------------
@@ -502,7 +502,8 @@ classdef comp_model < handle & design_matrix
             % INPUTS:
             % -------------------------------------------------------------------------
             % columns               Columns of obj.trial to plot
-            %
+            % xAxisColumn           Column to plot on x-axis averaging over subjects (e.g.,
+            %                       trial)
             % -------------------------------------------------------------------------
             % OPTIONAL INPUTS:
             % -------------------------------------------------------------------------
@@ -547,7 +548,7 @@ classdef comp_model < handle & design_matrix
             % -------------------------------------------------------------------------
             
             sub = unique(obj.trial(:,1));
-            trial = unique(obj.trial(:,2));
+            trial = unique(obj.trial(:,xAxisColumn));
             
             if nargin < 2
                 error('Please add a vector indicating which columns of trial to plot')
@@ -556,8 +557,8 @@ classdef comp_model < handle & design_matrix
             counter = 1;
             for c = columns
                 for t = 1:length(trial)
-                    datmn(t,counter) = nanmean(obj.trial(obj.trial(:,2)==trial(t),c));
-                    datse(t,counter) = nanstd(obj.trial(obj.trial(:,2)==trial(t),c)) / sqrt(length(sub));
+                    datmn(t,counter) = nanmean(obj.trial(obj.trial(:,xAxisColumn)==trial(t),c));
+                    datse(t,counter) = nanstd(obj.trial(obj.trial(:,xAxisColumn)==trial(t),c)) / sqrt(length(sub));
                 end
                 counter = counter + 1;
             end
@@ -773,7 +774,7 @@ classdef comp_model < handle & design_matrix
             end
             
         end %Function end
-            
+        
     end %methods
 end %class
 
