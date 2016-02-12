@@ -363,8 +363,8 @@ try
         keycode(key.ttl) = 0;
         while keycode(key.ttl)==0
             %             [presstime keycode delta] = KbWait(scannerID);
-            [presstime keycode delta] = KbWait(scannerID); %try waiting for all keyboards and keypads
-        end
+            [presstime keycode delta] = KbWait(-1); %wait for all keyboards and keypads
+        end        
     else
         DrawFormattedText(window,'Press ''SPACE'' key to begin experiment','center','center',255);
         Screen('Flip',window);
