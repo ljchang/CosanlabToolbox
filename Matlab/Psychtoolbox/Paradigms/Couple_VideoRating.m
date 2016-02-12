@@ -60,6 +60,9 @@ end
 cosanlabToolsPath = fullfile(fPath, 'Cosanlabtoolbox/Matlab/Psychtoolbox');
 addpath(genpath(fullfile(cosanlabToolsPath,'SupportFunctions')));
 
+% add rdir
+addpath('/Users/mristimulus/Desktop/RomanticCouples_Video/CosanlabToolbox/Matlab/External')
+
 commandwindow;
 
 % initialize mouse recording output
@@ -168,7 +171,7 @@ ListenChar(1); %Start listening to keyboard again.
 % Select Video File To Play
 if nargin < 1 %look for movies that match subject ID if not provided
     ListenChar(2); %Stop listening to keyboard
-    movie_list = rdir(fullfile(fPath,'Videos','*mp4'));
+    movie_list = rdir(fullfile(fPath,'Videos','*mov'));
     f_name = cellstr(strvcat(movie_list.name));
     wh_file = strfind(f_name,num2str(SUBID));
     movie_name = cellstr(strvcat(f_name{logical(~cellfun(@isempty,wh_file))}));
