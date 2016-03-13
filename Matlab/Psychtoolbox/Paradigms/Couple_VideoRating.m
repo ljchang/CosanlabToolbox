@@ -153,7 +153,7 @@ Screen('Flip',window);
 keycode=zeros(1,256);
 
 % Wait for keypress
-while keycode(key.zero)==0 && keycode(key.one)==0 && keycode(key.two)==0  && keycode(key.q) == 0
+while keycode(key.zero)==0 && keycode(key.one)==0 && keycode(key.two)==0 && keycode(key.three)==0 && keycode(key.q) == 0
     [presstime keycode delta] = KbWait(deviceNumber);
 end
 button = find(keycode==1);
