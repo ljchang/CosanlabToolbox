@@ -121,9 +121,19 @@ if USE_MRISTIMULUS
     %     scannerID = kbList(2);
     deviceNumber=kbList(1); % Might need to change depending on how many devices are connected.
 else
+    deviceNumber=kbList(1); % Might need to change depending on how many devices are connected.
     scannerID = deviceNumber;
 end
-emotions = {'How much guilt do you feel?','How much anger do you feel?', 'How anxious do you feel?', 'How much happiness do you feel?', 'How much pride do you feel?', 'How much disgust do you feel?', 'How much sadness do you feel?', 'How much shame','How connected do you feel?'};
+% emotions = {'How much guilt do you feel?','How much anger do you feel?', 'How anxious do you feel?', 'How much happiness do you feel?', 'How much pride do you feel?', 'How much disgust do you feel?', 'How much sadness do you feel?', 'How much shame','How connected do you feel?'};
+
+instruct_self = 'For the following questions rate how you were feeling on average during the discussion with your partner.';
+emotions_self = {'How much guilt did you feel on average?','How much anger did you feel on average?', 'How anxious did you feel on average?', 'How much happiness did you feel on average?', 'How much pride did you feel on average?', 'How much disgust did you feel on average?', 'How much sadness did you feel on average?', 'How much shame did you feel on average', 'How connected did you feel on average?'};
+
+instruct_partner = 'For the following questions rate how you think your partner was feeling on average during your discussion.';
+emotions_partner = {'How much guilt did s/he feel on average?','How much anger did s/he feel on average?', 'How anxious did s/he feel on average?', 'How much happiness did s/he feel on average?', 'How much pride did s/he feel on average?', 'How much disgust did s/he feel on average?', 'How much sadness did s/he feel on average?', 'How much shame did s/he feel on average', 'How connected did s/he feel on average?'};
+
+instruct_other = 'For the following questions rate how you were feeling on average watching the other couples discussion.';
+emotions_other = {'How much guilt did you feel on average?','How much anger did you feel on average?', 'How anxious did you feel on average?', 'How much happiness did you feel on average?', 'How much pride did you feel on average?', 'How much disgust did you feel on average?', 'How much sadness did you feel on average?', 'How much shame did you feel on average', 'How connected did you feel on average?'};
 
 %% Enter Subject Information
 
@@ -135,7 +145,7 @@ SUBID = str2num(SUBID);
 Screen('FillRect',window,screen); % paint black
 ListenChar(1); %Start listening to keyboard again.
 
-% Select Condition to Run
+% Select Condition to Run [scanner:0; Laptop Self:1; Laptop Partner:2; Laptop Other:3 ]
 ListenChar(2); %Stop listening to keyboard
 Screen('TextSize',window, text_size);
 DrawFormattedText(window,'Experimenter: Which condition do you want to run?\n\n0: Scanner\n1: Laptop Self\n2: Laptop Partner\n3: Laptop Other\nq: Quit','center','center',255);
@@ -581,9 +591,14 @@ try
         trial_out(3) = SELECT_VIDEO; % Video Number
         lastt = 3;
         for e = 1:length(emotions)
-            % Need to Fix this with new GetRating
-            [trial_out(lastt + 1) trial_out(lastt + 2) trial_out(lastt + 3) trial_out(lastt + 4)] = GetRating(window, rect, screen, 'txt',emotions{e},'type','line', 'anchor', {'None','A Lot'},'txtSize',text_size,'anchorSize',anchor_size);
-            
+            switch CONDITION  % [scanner:0; Laptop Self:1; Laptop Partner:2; Laptop Other:3 ]
+                case 1
+                    [trial_out(lastt + 1) trial_out(lastt + 2) trial_out(lastt + 3) trial_out(lastt + 4)] = GetRating(window, rect, screen, 'txt',[instruct_self '\n\n\n' emotions_self{e}],'type','line', 'anchor', {'None','A Lot'},'txtSize',text_size,'anchorSize',anchor_size);
+                case 2
+                    [trial_out(lastt + 1) trial_out(lastt + 2) trial_out(lastt + 3) trial_out(lastt + 4)] = GetRating(window, rect, screen, 'txt',[instruct_partner '\n\n\n' emotions_partner{e}],'type','line', 'anchor', {'None','A Lot'},'txtSize',text_size,'anchorSize',anchor_size);
+                case 3
+                    [trial_out(lastt + 1) trial_out(lastt + 2) trial_out(lastt + 3) trial_out(lastt + 4)] = GetRating(window, rect, screen, 'txt',[instruct_other '\n\n\n' emotions_other{e}],'type','line', 'anchor', {'None','A Lot'},'txtSize',text_size,'anchorSize',anchor_size);
+            end
             lastt = lastt + 4;
             
             % Wait for 1 second in between each rating
