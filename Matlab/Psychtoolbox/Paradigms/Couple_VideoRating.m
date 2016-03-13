@@ -590,7 +590,7 @@ try
         trial_out(2) = CONDITION; % Video Number
         trial_out(3) = SELECT_VIDEO; % Video Number
         lastt = 3;
-        for e = 1:length(emotions)
+        for e = 1:length(emotions_self)
             switch CONDITION  % [scanner:0; Laptop Self:1; Laptop Partner:2; Laptop Other:3 ]
                 case 1
                     [trial_out(lastt + 1) trial_out(lastt + 2) trial_out(lastt + 3) trial_out(lastt + 4)] = GetRating(window, rect, screen, 'txt',[instruct_self '\n\n\n' emotions_self{e}],'type','line', 'anchor', {'None','A Lot'},'txtSize',text_size,'anchorSize',anchor_size);
