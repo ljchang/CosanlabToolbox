@@ -181,7 +181,7 @@ ListenChar(1); %Start listening to keyboard again.
 % Select Video File To Play
 if nargin < 1 %look for movies that match subject ID if not provided
     ListenChar(2); %Stop listening to keyboard
-    movie_list = rdir(fullfile(fPath,'Videos','*mov'));
+    movie_list = rdir(fullfile(fPath,'Videos','*mp4'));
     f_name = cellstr(strvcat(movie_list.name));
     wh_file = strfind(f_name,num2str(SUBID));
     movie_name = cellstr(strvcat(f_name{logical(~cellfun(@isempty,wh_file))}));
