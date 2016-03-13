@@ -85,8 +85,6 @@ screen = max(Screen('Screens'));
 [window rect] = Screen('OpenWindow', screen, background);
 
 % Settings
-STARTFIX = 15;
-ENDFIX = 15;
 text_size = 24;
 anchor_size = 20;
 
@@ -314,6 +312,15 @@ if USE_VIDEO
 end
 
 %% Set up screens
+
+% Timing information
+if CONDITION == 0
+    STARTFIX = 15;
+    ENDFIX = 15;
+else
+    STARTFIX = 5;
+    ENDFIX = 3;
+end
 
 screens = Screen('Screens');
 screenNumber = max(screens);
