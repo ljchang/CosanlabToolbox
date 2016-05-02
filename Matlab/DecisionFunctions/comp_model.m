@@ -1,3 +1,4 @@
+
 classdef comp_model < handle & design_matrix
     
     % comp_model: data class for creating a computational model
@@ -471,14 +472,14 @@ classdef comp_model < handle & design_matrix
             
         end
         
-        function summary = summary(obj)
+        function summary = summary(obj,varargin)
             % summary = summary(obj)
             %
             % -------------------------------------------------------------------------
             % This function returns the average parameter estimates across
             % subjects.  Assumes that parameters start on the second
             % column. Also returns average AIC, average BIC, average final
-            % minimized value, and number of subjects
+            % minimized value, and number of subjects.
             % -------------------------------------------------------------------------
             
             sprintf(['Summary of Model: ' obj.model ...
@@ -486,13 +487,13 @@ classdef comp_model < handle & design_matrix
                 '\nAverage Parameters:\t' num2str(nanmean(obj.params(:,2:length(obj.param_min) + 1))) ...
                 '\nAverage AIC:\t\t' num2str(nanmean(obj.params(:,end - 1))) ...
                 '\nAverage BIC:\t\t' num2str(nanmean(obj.params(:,end))) ...
-                '\nAverage ' obj.esttype ':\t\t' num2str(nanmean(obj.params(:,end-3))) ...
+                '\nAverage ' obj.esttype ':\t\t' num2str(nanmean(obj.params(:,end-2))) ...
                 '\nNumber of Subjects:\t' num2str(size(obj.params,1)) ...
                 '\n-----------------------------------------'])
             
         end
         
-        function f1 = plot(obj, columns, varargin)
+        function f1 = plot(obj, columns, xAxisColumn,varargin)
             % f1 = plot(obj)
             %
             % -------------------------------------------------------------------------
@@ -502,7 +503,8 @@ classdef comp_model < handle & design_matrix
             % INPUTS:
             % -------------------------------------------------------------------------
             % columns               Columns of obj.trial to plot
-            %
+            % xAxisColumn           Column to plot on x-axis averaging over subjects (e.g.,
+            %                       trial)
             % -------------------------------------------------------------------------
             % OPTIONAL INPUTS:
             % -------------------------------------------------------------------------
@@ -547,7 +549,7 @@ classdef comp_model < handle & design_matrix
             % -------------------------------------------------------------------------
             
             sub = unique(obj.trial(:,1));
-            trial = unique(obj.trial(:,2));
+            trial = unique(obj.trial(:,xAxisColumn));
             
             if nargin < 2
                 error('Please add a vector indicating which columns of trial to plot')
@@ -556,8 +558,8 @@ classdef comp_model < handle & design_matrix
             counter = 1;
             for c = columns
                 for t = 1:length(trial)
-                    datmn(t,counter) = nanmean(obj.trial(obj.trial(:,2)==trial(t),c));
-                    datse(t,counter) = nanstd(obj.trial(obj.trial(:,2)==trial(t),c)) / sqrt(length(sub));
+                    datmn(t,counter) = nanmean(obj.trial(obj.trial(:,xAxisColumn)==trial(t),c));
+                    datse(t,counter) = nanstd(obj.trial(obj.trial(:,xAxisColumn)==trial(t),c)) / sqrt(length(sub));
                 end
                 counter = counter + 1;
             end

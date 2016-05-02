@@ -9,11 +9,12 @@
 %
 % Developed by Luke Chang, Briana Robustelli, Mark Whisman, Tor Wager
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (c) 2014 Luke Chang
 %
 % Permission is hereby granted, free of charge, to any person obtaining a
-% copy of this software and associated documentation files (the "Software"),
+% copy of this software and associated documentation files (theco
+% "Software"),co
 % to deal in the Software without restriction, including without limitation
 % the rights to use, copy, modify, merge, publish, distribute, sublicense,
 % and/or sell copies of the Software, and to permit persons to whom the
@@ -40,17 +41,19 @@
 % Biopac triggering will happen on computer 1 via the parallel port
 
 % Conditions
-% 1) Deliver Pain Trials (7?)
+% 1) Pain with partner not in room
 % 2) Pain with parter in room but hidden
 % 3) pain with partner in room - can see and not talk
-% 4) pain with partner can share how feeling
-% 5) pain with partner can provide support
+% 4) pain with partner in room and press button after each pain (message sharing control)
+% 5) pain with partner can share how feeling
 % 6) pain with partner can talk only distraction
-% 7) pain with partner holding hand
-% 8) pain with no partner in room and press button after each pain (message sharing control)
+% 7) pain with partner can provide support
+% 8) pain with partner holding hand
+% 9) Pain with partner not in room
 
 %% Testing Settings
 
+commandwindow;
 ShowCursor;
 screens = Screen('Screens');
 % screenNumber = min(screens);
@@ -61,15 +64,15 @@ screens = Screen('Screens');
 clear all; close all; fclose all;
 % fPath = '/Users/lukechang/Dropbox/RomanticCouples/CouplesParadigm';
 % cosanlabToolsPath = '/Users/lukechang/Dropbox/Github/Cosanlabtoolbox/Matlab/Psychtoolbox';
-fPath = '/Users/lukechang/Dropbox/Doctor_Patient_Andrew/CouplesParadigm';
-cosanlabToolsPath = '/Users/ljchang/Dropbox/Github/Cosanlabtoolbox/Matlab/Psychtoolbox';
+fPath = '/Users/canlab/Documents/RomanticCouples';
+cosanlabToolsPath = '/Users/canlab/Github/Cosanlabtoolbox/Matlab/Psychtoolbox';
 addpath(genpath(fullfile(cosanlabToolsPath,'SupportFunctions')));
 
 % random number generator reset
 rand('state',sum(100*clock));
 
 % Devices
-USE_VIDEO = 0;          % record video of Run
+USE_VIDEO = 1;          % record video of Run
 USE_NETWORK = 1;        % refers to Biopac make 0 if not running on computer with biopac
 
 TRACKBALL_MULTIPLIER = 5;
@@ -78,14 +81,13 @@ TRACKBALL_MULTIPLIER = 5;
 PAINDUR = 1;
 RATINGDUR = 1;
 CUEDUR = 1;
-ENDSCREENDUR = 3;
+ENDSCREENDUR = 4;
 STARTFIX = 1;
-FEEDBACKDUR = 3;
+FEEDBACKDUR = 0;  % Will wait for button press
 
-% Condition - will be function input
-% CONDITION = 1;
-% SUBID = 201;
-EXPERIMENTER = 1;
+% Settings
+text_size = 28;
+anchor_size = 20;
 
 %% PREPARE DISPLAY
 % % will break with error message if Screen() can't run
@@ -103,8 +105,8 @@ screenNumber = max(screens);
 
 
 % Prepare the screen
-% [window rect] = Screen('OpenWindow',screenNumber);
-[window rect] = Screen('OpenWindow', screenNumber, 0, [0 0 1200 700]);
+[window rect] = Screen('OpenWindow',screenNumber);
+% [window rect] = Screen('OpenWindow', screenNumber, 0, [0 0 1200 700]);
 Screen('fillrect', window, screenNumber);
 % HideCursor;
 
@@ -182,7 +184,7 @@ if USE_NETWORK
     fopen(connection)
     
     %%% Test Connection
-    dat_in = WaitForInput(connection, [1,3], 5);
+    dat_in = WaitForInput(connection, [1,3], 15);
     nTrials = dat_in(1);
     SUBID = dat_in(2);
     CONDITION = dat_in(3);
@@ -203,6 +205,7 @@ if USE_NETWORK
     end
     
     % Send Signal to Computer 1 to proceed
+    WaitSecs(.2)
     fwrite(connection,1,'double')
 end
 
@@ -223,12 +226,13 @@ if USE_VIDEO
     c = ':CodecType=x264enc Keyframe=1: CodecSettings= Videoquality=1';
     
     % Settings for video recording
-    recFlag = 0 + 4 + 16 + 64; % [0,2]=sound off or on; [4] = disables internal processing; [16]=offload to separate processing thread; [64] = request timestamps in movie recording time instead of GetSecs() time:
+    recFlag = 2 + 4 + 16 + 64; % [0,2]=sound off or on; [4] = disables internal processing; [16]=offload to separate processing thread; [64] = request timestamps in movie recording time instead of GetSecs() time:
     
     % Initialize capture
     % Need to figure out how to change resolution and select webcam
     % videoPtr =Screen('OpenVideoCapture', windowPtr [, deviceIndex][, roirectangle][, pixeldepth][, numbuffers][, allowfallback][, targetmoviename][, recordingflags][, captureEngineType][, bitdepth=8]);
-    grabber = Screen('OpenVideoCapture', window, did(2), [], [], [], 1, fullfile(fPath,'Data',['Video_' num2str(SUBID) '_Condition' num2str(CONDITION) '.avi' c]), recFlag, 3, 8);
+    grabber = Screen('OpenVideoCapture', window, [], [0 0 320 240], [], [], 1, fullfile(fPath,'Data',['Video_' num2str(SUBID) '_Condition' num2str(CONDITION) '.avi' c]), recFlag, 3, 8);
+%     grabber = Screen('OpenVideoCapture', window, [], [0 0 640 480], [], [], 1, fullfile(fPath,'Data',['Video_' num2str(SUBID) '_Condition' num2str(CONDITION) '.avi' c]), recFlag, 3, 8);
     WaitSecs('YieldSecs', 2); %insert delay to allow video to spool up
     
 end
@@ -267,30 +271,30 @@ ListenChar(1); %Start listening to keyboard again.
 % %Instructions
 switch CONDITION
     case 0 %practice trials
-        instruct = 'We will now practice how to make ratings.\n\nYour partner will not be receiving any pain during practice.\n\nAfter each trial you will how bad you feel.\n\nPlease respond as honestly as you can.\n\nNobody else will be able to see your ratings.\n\n\nPress "spacebar" to continue.';
-    case {1,2,3} %Standard conditions
+        instruct = 'We will now practice how to make ratings.\n\nYour partner will receive several trials of heat stimulation while we calibrate the thermode.\n\nAfter each trial you will how bad you feel.\n\nPlease respond as honestly as you can.\n\nNobody else will be able to see your ratings.\n\n\nPress "spacebar" to continue.';
+    case {1,2,3,9} %Standard conditions
         instruct = 'In this condition your partner will receive several trials of heat stimulation.\n\nAfter each trial you will rate how bad you feel.\n\nPlease respond as honestly as you can.\n\nNobody else will be able to see your ratings.\n\n\nPress "spacebar" to continue.';
-    case 4 %Experience sharing
-        instruct = 'In this condition your partner will receive several trials of heat stimulation.\n\nAfter each trial your partner will be able to share how they are feeling with you.\n\nAfter you have viewed the message, you will then rate how bad you feel.\n\nNobody else will be able to see these ratings.\n\nPress "spacebar" to continue.';
-    case {5,6}
-        instruct = 'In this condition your partner will receive several trials of heat stimulation.\n\nYou can directly communicate with your partner during the pain stimulation.\n\nAfter each trial, you will then rate how bad you feel.\n\nNobody else will be able to see these ratings.\n\n\nPress "spacebar" to continue.';
-    case 7%Hand holding
-        instruct = 'In this condition your partner will receive several trials of heat stimulation.\n\nYou will be holding your partner''s hand during the stimulation.\n\nAfter each trial you will then rate how bad you feel.\n\nNobody else will be able to see these ratings.\n\n\nPress "spacebar" to continue.';
-    case 8 %Button press control
+    case 4 %Button press control
         instruct = 'In this condition your partner will receive several trials of heat stimulation.\n\nAfter each trial you will be be instructed to rate a specific number.\n\nAfter you have selected the rating, you will then rate how bad you feel.\n\nNobody else will be able to see these ratings.\n\n\nPress "spacebar" to continue.';
+    case 5 %Experience sharing
+        instruct = 'In this condition your partner will receive several trials of heat stimulation.\n\nAfter each trial your partner will be able to share how they are feeling with you.\n\nAfter you have viewed the message, you will then rate how bad you feel.\n\nNobody else will be able to see these ratings.\n\nPress "spacebar" to continue.';
+    case {6,7}
+        instruct = 'In this condition your partner will receive several trials of heat stimulation.\n\nYou can directly communicate with your partner during the pain stimulation.\n\nAfter each trial, you will then rate how bad you feel.\n\nNobody else will be able to see these ratings.\n\n\nPress "spacebar" to continue.';
+    case 8 %Hand holding
+        instruct = 'In this condition your partner will receive several trials of heat stimulation.\n\nYou will be holding your partner''s hand during the stimulation.\n\nAfter each trial you will then rate how bad you feel.\n\nNobody else will be able to see these ratings.\n\n\nPress "spacebar" to continue.';
 end
 
 %% Run Script
 
 %Initialize File with Header - need to get condition information from Computer 1
 switch CONDITION
-    case {1,2,3,7}
+    case {0,1,2,3,8,9}
         hdr = 'Subject,Condition,Trial,ExperimentStart,StimulationOnset,StimulusOffset,StimulationDur,RatingOnset,RatingOffset,RatingDur,Rating';
         timings = nan(1,11);
-    case {4,8}
+    case {4,5}
         hdr = 'Subject,Condition,Trial,ExperimentStart,StimulationOnset,StimulusOffset,StimulationDur,RatingOnset,RatingOffset,RatingDur,Rating,PartnerRating,PartnerRatingOnset,PartnerRatingOffset,PartnerRatingDur';
         timings = nan(1,15);
-    case {5,6}
+    case {6,7}
         hdr = 'Subject,Condition,Trial,ExperimentStart,StimulationOnset,StimulusOffset,StimulationDur,RatingOnset,RatingOffset,RatingDur,Rating,ComfortOnset,ComfortOffset,ComfortDur';
         timings = nan(1,15);
 end
@@ -302,7 +306,7 @@ DrawFormattedText(window,'.','center','center',255);
 Screen('Flip',window);
 
 % put up instruction screen
-Screen('TextSize',window, 36);
+Screen('TextSize',window, text_size);
 DrawFormattedText(window,instruct,'center','center',255);
 Screen('Flip',window);
 % wait for experimenter to press spacebar
@@ -378,7 +382,7 @@ while t <= nTrials
             %%% RATING
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             txt = 'Please rate how bad you feel.\n\n Your partner will not see this rating.';
-            [timings(8) timings(9) timings(10) timings(11)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','A Lot'});
+            [timings(8) timings(9) timings(10) timings(11)] = GetRating(window, rect, screenNumber, 'txt',txt, 'type','line','anchor',{'None','A Lot'},'txtSize',text_size,'anchorSize',anchor_size);
             
             % Send trial data to Computer 1
             fwrite(connection, 222,'double')
@@ -390,16 +394,41 @@ while t <= nTrials
             % Append data to file after every trial
             dlmwrite(fullfile(fPath,'Data',[num2str(SUBID) '_Condition' num2str(CONDITION) '.csv']), timings, 'delimiter',',','-append','precision',10)
             
-        case 4 %Share how partner is feeling :: Only for condition 4
+        case 4 %Show Button Press :: Only for condition 4
+            
+            %%% Show Button press
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            timings(12) = incoming_data(4);
+            txt = 'This is the rating your partner was instructed to press.\n\n\n\n\n\n\n\n\n\n\n\n\n\nPress ''Spacebar'' when ready to proceed';
+            [timings(13) timings(14) timings(15)] = ShowRating(timings(12), FEEDBACKDUR, window, rect, screenNumber, 'txt', txt, 'type','line','anchor',{'None','A Lot'},'txtSize',text_size,'anchorSize',anchor_size);
+            
+            % Send trial data to Computer 1
+            fwrite(connection, 200,'double')
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+        case 5 %Share how partner is feeling :: Only for condition 5
             
             %%% Share Feeling
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             timings(12) = incoming_data(4);
-            txt = 'This is how your partner wanted you to know that they are feeling.';
-            [timings(13) timings(14) timings(15)] = ShowRating(timings(12), FEEDBACKDUR, window, rect, screenNumber, 'txt', txt, 'type','line','anchor',{'None','A Lot'});
+            txt = 'This is how your partner wanted you to know that they are feeling.\n\n\n\n\n\n\n\n\n\n\n\n\n\nPress ''Spacebar'' when ready to proceed';
+            
+            [timings(13) timings(14) timings(15)] = ShowRating(timings(12), FEEDBACKDUR, window, rect, screenNumber, 'txt', txt, 'type','line','anchor',{'None','A Lot'},'txtSize',text_size,'anchorSize',anchor_size);
+            
+            % Send trial data to Computer 1
+            fwrite(connection, 200,'double')
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
-        case 5 %Comfort Your Partner :: Only for condition 5
+        case 6 %Distract Your Partner :: Only for condition 6
+            
+            %%% Share Feeling
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            comfort_time = incoming_data(4);
+            txt = 'Distract your partner until the end of the timer.';
+            [timings(12) timings(13) timings(14)] = ShowProgressBar(comfort_time,window, rect, screenNumber,'txt',txt,'anchor',{'0',num2str(comfort_time)});
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+        case 7 %Comfort Your Partner :: Only for condition 7
             
             %%% Share Feeling
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -408,14 +437,7 @@ while t <= nTrials
             [timings(12) timings(13) timings(14)] = ShowProgressBar(comfort_time,window, rect, screenNumber,'txt',txt,'anchor',{'0',num2str(comfort_time)});
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
-        case 8 %Show Button Press :: Only for condition 8
             
-            %%% Show Button press
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            timings(12) = incoming_data(4);
-            txt = 'This is the rating your partner was instructed to press.';
-            [timings(13) timings(14) timings(15)] = ShowRating(timings(12), FEEDBACKDUR, window, rect, screenNumber, 'txt', txt, 'type','line','anchor',{'None','A Lot'});
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     end
     
     %%% Fixation
@@ -429,9 +451,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Screen('TextSize',window,72);
 DrawFormattedText(window,'END','center','center',255);
-WaitSecs('UntilTime',ENDSCREENDUR);
 timing.endscreen = Screen('Flip',window);
-WaitSecs(3);
+WaitSecs(ENDSCREENDUR);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% FINISH UP
@@ -457,5 +478,6 @@ Screen('CloseAll');
 ShowCursor;
 Priority(0);
 sca;
+
 
 
